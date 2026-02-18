@@ -1,24 +1,23 @@
 /* Calm, wallpaper-first homepage */
 
-html,
-body {
-  height: 100%;
-}
-
 .home-page {
   --text: #f8fafc;
   --text-dim: rgba(241, 245, 249, 0.84);
+  --app-wallpaper: url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
 
-  min-height: 100svh;
+  min-height: 100dvh;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   color: var(--text);
+  background-color: #020617;
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.42) 100%),
-    url('../img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
+    var(--app-wallpaper);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  transition: background-image 0.35s ease;
 }
 
 .home-page .app-bar {
@@ -82,7 +81,7 @@ body {
 }
 
 .home-main {
-  min-height: 100svh;
+  min-height: calc(100dvh - 104px);
   max-width: 1300px;
   padding-top: 104px;
   padding-bottom: 20px;
@@ -112,7 +111,7 @@ body {
   width: min(100%, 390px);
   padding: 6px;
   animation: floatClock 8s ease-in-out infinite;
-  margin-top: 0;
+  margin-top: 20px;
 }
 
 .pomodoro-shell {
@@ -392,8 +391,9 @@ body {
 .today-habit input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: #22c55e;
+  accent-color: #cbd5e1;
   cursor: pointer;
+  filter: saturate(0.65);
 }
 
 .today-habit .habit-text {
@@ -451,7 +451,7 @@ body {
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.7s ease, transform 0.7s ease;
-  margin-top: 26px;
+  margin-top: 44px;
   margin-bottom: 8px;
 }
 
@@ -476,6 +476,36 @@ body {
   text-shadow: 0 3px 12px rgba(2, 6, 23, 0.55);
 }
 
+.wallpaper-next-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 18px;
+  z-index: 50;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(241, 245, 249, 0.34);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.36);
+  color: #f8fafc;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 22px rgba(2, 6, 23, 0.3);
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.wallpaper-next-btn:hover,
+.wallpaper-next-btn:focus-visible {
+  background: rgba(15, 23, 42, 0.6);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.wallpaper-next-btn svg {
+  opacity: 0.95;
+}
+
 @keyframes floatClock {
   0%,
   100% {
@@ -497,10 +527,6 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .home-page {
-    overflow-y: auto;
-  }
-
   .home-main {
     min-height: auto;
     padding-top: 106px;
@@ -571,5 +597,12 @@ body {
   .home-cta {
     width: 100%;
     text-align: center;
+  }
+
+  .wallpaper-next-btn {
+    right: 12px;
+    bottom: 12px;
+    width: 42px;
+    height: 42px;
   }
 }

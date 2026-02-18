@@ -81,6 +81,11 @@ const habitsAPI = {
     apiCall(`/habits/${habitId}/complete`, {
       method: 'POST',
     }),
+
+  undoToday: (habitId) =>
+    apiCall(`/habits/${habitId}/complete/today`, {
+      method: 'DELETE',
+    }),
 };
 
 // Friends API
@@ -121,5 +126,10 @@ const journalAPI = {
     }),
 };
 
+// Assets API
+const assetsAPI = {
+  listWallpapers: () => apiCall('/assets/wallpapers'),
+};
+
 // Export for use in other files
-export { authAPI, habitsAPI, friendsAPI, journalAPI };
+export { authAPI, habitsAPI, friendsAPI, journalAPI, assetsAPI };

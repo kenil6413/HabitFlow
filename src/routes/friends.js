@@ -1,6 +1,6 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 import { getDB } from '../db/connection.js';
+import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
@@ -8,6 +8,7 @@ const router = express.Router();
 router.post('/add', async (req, res) => {
   try {
     const { userId, shareCode } = req.body;
+    const userObjectId = toObjectIdOrNull(userId);
 
     // Validation
     if (!userId || !shareCode) {
@@ -16,7 +17,7 @@ router.post('/add', async (req, res) => {
         .json({ error: 'userId and shareCode are required' });
     }
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -41,7 +42,7 @@ router.post('/add', async (req, res) => {
 
     // Check if already friends
     const currentUser = await usersCollection.findOne({
-      _id: new ObjectId(userId),
+      _id: userObjectId,
     });
 
     if (!currentUser) {
@@ -58,7 +59,7 @@ router.post('/add', async (req, res) => {
 
     // Add friend
     await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: userObjectId },
       { $push: { friends: friendUser._id } }
     );
 
@@ -80,8 +81,10 @@ router.post('/add', async (req, res) => {
 router.get('/:userId/habits/:friendId', async (req, res) => {
   try {
     const { userId, friendId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
+    const friendObjectId = toObjectIdOrNull(friendId);
 
-    if (!ObjectId.isValid(userId) || !ObjectId.isValid(friendId)) {
+    if (!userObjectId || !friendObjectId) {
       return res.status(400).json({ error: 'Invalid userId or friendId' });
     }
 
@@ -89,7 +92,7 @@ router.get('/:userId/habits/:friendId', async (req, res) => {
     const usersCollection = db.collection('users');
     const habitsCollection = db.collection('habits');
 
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: userObjectId });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -104,12 +107,12 @@ router.get('/:userId/habits/:friendId', async (req, res) => {
     }
 
     const friendHabits = await habitsCollection
-      .find({ userId: new ObjectId(friendId) })
+      .find({ userId: friendObjectId })
       .sort({ createdAt: -1 })
       .toArray();
 
     const friendUser = await usersCollection.findOne(
-      { _id: new ObjectId(friendId) },
+      { _id: friendObjectId },
       { projection: { username: 1, shareCode: 1 } }
     );
 
@@ -137,8 +140,9 @@ router.get('/:userId/habits/:friendId', async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -146,7 +150,7 @@ router.get('/:userId', async (req, res) => {
     const usersCollection = db.collection('users');
 
     // Get current user with friends
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: userObjectId });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -186,8 +190,10 @@ router.get('/:userId', async (req, res) => {
 router.delete('/:userId/remove/:friendId', async (req, res) => {
   try {
     const { userId, friendId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
+    const friendObjectId = toObjectIdOrNull(friendId);
 
-    if (!ObjectId.isValid(userId) || !ObjectId.isValid(friendId)) {
+    if (!userObjectId || !friendObjectId) {
       return res.status(400).json({ error: 'Invalid userId or friendId' });
     }
 
@@ -196,8 +202,8 @@ router.delete('/:userId/remove/:friendId', async (req, res) => {
 
     // Remove friend
     const result = await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
-      { $pull: { friends: new ObjectId(friendId) } }
+      { _id: userObjectId },
+      { $pull: { friends: friendObjectId } }
     );
 
     if (result.matchedCount === 0) {

@@ -47,59 +47,6 @@
       </div>
     </div>
 
-    <script type="module">
-      import { authAPI } from './js/api.js';
-      import { storage, showAlert, redirect } from './js/utils.js';
-
-      // Redirect if already logged in
-      if (storage.isLoggedIn()) {
-        redirect('dashboard.html');
-      }
-
-      const loginForm = document.getElementById('loginForm');
-      const alertContainer = document.getElementById('alertContainer');
-
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-
-        // Clear previous alerts
-        alertContainer.innerHTML = '';
-
-        try {
-          // Disable submit button
-          const submitBtn = loginForm.querySelector('button[type="submit"]');
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Logging in...';
-
-          const data = await authAPI.login(username, password);
-
-          // Save user data to localStorage
-          storage.setUser({
-            userId: data.userId,
-            username: data.username,
-            shareCode: data.shareCode,
-          });
-
-          // Show success message
-          alertContainer.innerHTML =
-            '<div class="alert alert-success">Login successful! Redirecting...</div>';
-
-          // Redirect to home
-          setTimeout(() => {
-            redirect('home.html');
-          }, 1000);
-        } catch (error) {
-          alertContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
-
-          // Re-enable submit button
-          const submitBtn = loginForm.querySelector('button[type="submit"]');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Login';
-        }
-      });
-    </script>
+    <script type="module" src="./js/auth/login.js"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 import { getDB } from '../db/connection.js';
+import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
@@ -8,13 +8,14 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { userId, name, description } = req.body;
+    const userObjectId = toObjectIdOrNull(userId);
 
     // Validation
     if (!userId || !name) {
       return res.status(400).json({ error: 'userId and name are required' });
     }
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -23,7 +24,7 @@ router.post('/', async (req, res) => {
 
     // Create habit
     const newHabit = {
-      userId: new ObjectId(userId),
+      userId: userObjectId,
       name,
       description: description || '',
       completions: [],
@@ -48,8 +49,9 @@ router.post('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -57,7 +59,7 @@ router.get('/user/:userId', async (req, res) => {
     const habitsCollection = db.collection('habits');
 
     const habits = await habitsCollection
-      .find({ userId: new ObjectId(userId) })
+      .find({ userId: userObjectId })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -76,8 +78,9 @@ router.get('/user/:userId', async (req, res) => {
 router.get('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
+    const habitObjectId = toObjectIdOrNull(habitId);
 
-    if (!ObjectId.isValid(habitId)) {
+    if (!habitObjectId) {
       return res.status(400).json({ error: 'Invalid habitId' });
     }
 
@@ -85,7 +88,7 @@ router.get('/:habitId', async (req, res) => {
     const habitsCollection = db.collection('habits');
 
     const habit = await habitsCollection.findOne({
-      _id: new ObjectId(habitId),
+      _id: habitObjectId,
     });
 
     if (!habit) {
@@ -107,8 +110,9 @@ router.put('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
     const { name, description } = req.body;
+    const habitObjectId = toObjectIdOrNull(habitId);
 
-    if (!ObjectId.isValid(habitId)) {
+    if (!habitObjectId) {
       return res.status(400).json({ error: 'Invalid habitId' });
     }
 
@@ -125,7 +129,7 @@ router.put('/:habitId', async (req, res) => {
     };
 
     const result = await habitsCollection.updateOne(
-      { _id: new ObjectId(habitId) },
+      { _id: habitObjectId },
       { $set: updateData }
     );
 
@@ -146,8 +150,9 @@ router.put('/:habitId', async (req, res) => {
 router.delete('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
+    const habitObjectId = toObjectIdOrNull(habitId);
 
-    if (!ObjectId.isValid(habitId)) {
+    if (!habitObjectId) {
       return res.status(400).json({ error: 'Invalid habitId' });
     }
 
@@ -155,7 +160,7 @@ router.delete('/:habitId', async (req, res) => {
     const habitsCollection = db.collection('habits');
 
     const result = await habitsCollection.deleteOne({
-      _id: new ObjectId(habitId),
+      _id: habitObjectId,
     });
 
     if (result.deletedCount === 0) {
@@ -175,8 +180,9 @@ router.delete('/:habitId', async (req, res) => {
 router.post('/:habitId/complete', async (req, res) => {
   try {
     const { habitId } = req.params;
+    const habitObjectId = toObjectIdOrNull(habitId);
 
-    if (!ObjectId.isValid(habitId)) {
+    if (!habitObjectId) {
       return res.status(400).json({ error: 'Invalid habitId' });
     }
 
@@ -189,7 +195,7 @@ router.post('/:habitId/complete', async (req, res) => {
 
     // Find the habit
     const habit = await habitsCollection.findOne({
-      _id: new ObjectId(habitId),
+      _id: habitObjectId,
     });
 
     if (!habit) {
@@ -217,7 +223,7 @@ router.post('/:habitId/complete', async (req, res) => {
     const newStreak = calculateStreak([...habit.completions, newCompletion]);
 
     await habitsCollection.updateOne(
-      { _id: new ObjectId(habitId) },
+      { _id: habitObjectId },
       {
         $push: { completions: newCompletion },
         $set: { currentStreak: newStreak },
@@ -230,6 +236,61 @@ router.post('/:habitId/complete', async (req, res) => {
     });
   } catch (error) {
     console.error('Complete habit error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Remove today's completion for a habit
+router.delete('/:habitId/complete/today', async (req, res) => {
+  try {
+    const { habitId } = req.params;
+    const habitObjectId = toObjectIdOrNull(habitId);
+
+    if (!habitObjectId) {
+      return res.status(400).json({ error: 'Invalid habitId' });
+    }
+
+    const db = getDB();
+    const habitsCollection = db.collection('habits');
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const habit = await habitsCollection.findOne({ _id: habitObjectId });
+    if (!habit) {
+      return res.status(404).json({ error: 'Habit not found' });
+    }
+
+    const filteredCompletions = (habit.completions || []).filter((completion) => {
+      const completionDate = new Date(completion.date);
+      completionDate.setHours(0, 0, 0, 0);
+      return completionDate.getTime() !== today.getTime();
+    });
+
+    if (filteredCompletions.length === (habit.completions || []).length) {
+      return res
+        .status(400)
+        .json({ error: 'Habit is not marked complete for today' });
+    }
+
+    const newStreak = calculateStreak(filteredCompletions);
+
+    await habitsCollection.updateOne(
+      { _id: habitObjectId },
+      {
+        $set: {
+          completions: filteredCompletions,
+          currentStreak: newStreak,
+        },
+      }
+    );
+
+    res.status(200).json({
+      message: 'Habit completion removed for today',
+      currentStreak: newStreak,
+    });
+  } catch (error) {
+    console.error('Undo complete habit error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

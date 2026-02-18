@@ -30,18 +30,7 @@
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </button>
-            <div class="profile-menu" id="profileMenu">
-              <a href="dashboard.html">Dashboard & Settings</a>
-              <button type="button" id="profileLogoutLink">Logout</button>
-            </div>
-          </div>
-          <div class="app-bar-actions app-bar-actions-hidden">
-            <a href="dashboard.html" class="btn btn-secondary btn-sm"
-              >Settings</a
-            >
-            <button type="button" class="btn btn-danger btn-sm" id="logoutBtn">
-              Logout
-            </button>
+            <div class="profile-menu" id="profileMenu"></div>
           </div>
         </nav>
       </div>
@@ -49,11 +38,17 @@
     <div class="container">
       <div class="friends-header">
         <div class="page-title">
+          <span class="friends-eyebrow">Connections Hub</span>
           <h1>Friends</h1>
           <p>
             Accountability multiplies progress—surround yourself with people who
             show up.
           </p>
+          <div class="friends-hero-meta">
+            <span class="meta-pill"
+              >Connected: <strong id="heroFriendCount">0</strong></span
+            >
+          </div>
         </div>
       </div>
 
@@ -96,9 +91,17 @@
       <div class="friends-section">
         <div class="section-header">
           <h2>My Friends (<span id="friendCount">0</span>)</h2>
-          <button class="btn btn-secondary btn-sm" id="refreshBtn">
-            🔄 Refresh
-          </button>
+          <div class="section-actions">
+            <input
+              type="text"
+              id="friendSearch"
+              class="friend-search"
+              placeholder="Search by username or code"
+            />
+            <button class="btn btn-secondary btn-sm" id="refreshBtn">
+              🔄 Refresh
+            </button>
+          </div>
         </div>
 
         <!-- Loading State -->
@@ -141,6 +144,32 @@
                   >0 completed today</span
                 >
               </div>
+              <div class="modal-tools">
+                <label for="habitSortSelect">Sort habits</label>
+                <select id="habitSortSelect" class="habit-sort-select">
+                  <option value="streak">Top streak</option>
+                  <option value="recent">Recently added</option>
+                  <option value="name">Name A-Z</option>
+                </select>
+                <div class="habit-filter-group" role="tablist" aria-label="Habit filter">
+                  <button
+                    type="button"
+                    class="habit-filter-btn active"
+                    data-habit-filter="all"
+                    aria-selected="true"
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    class="habit-filter-btn"
+                    data-habit-filter="completed"
+                    aria-selected="false"
+                  >
+                    Completed Today
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <button
@@ -163,365 +192,6 @@
       </div>
     </div>
 
-    <script type="module">
-      import { friendsAPI, habitsAPI } from './js/api.js';
-      import {
-        storage,
-        redirect,
-        requireAuth,
-        formatDate,
-      } from './js/utils.js';
-
-      // Protect this page
-      requireAuth();
-
-      // Profile dropdown
-      const profileBtn = document.getElementById('profileBtn');
-      const profileMenu = document.getElementById('profileMenu');
-      const profileLogoutLink = document.getElementById('profileLogoutLink');
-
-      if (profileBtn && profileMenu) {
-        profileBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          profileMenu.classList.toggle('active');
-        });
-
-        document.addEventListener('click', (e) => {
-          if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
-            profileMenu.classList.remove('active');
-          }
-        });
-      }
-
-      profileLogoutLink?.addEventListener('click', () => {
-        profileMenu.classList.remove('active');
-        document.getElementById('logoutBtn')?.click();
-      });
-
-      // Get user data
-      const user = storage.getUser();
-      document.getElementById('myShareCode').textContent = user.shareCode;
-
-      // Elements
-      const friendsGrid = document.getElementById('friendsGrid');
-      const loadingState = document.getElementById('loadingState');
-      const emptyState = document.getElementById('emptyState');
-      const alertContainer = document.getElementById('alertContainer');
-      const friendCount = document.getElementById('friendCount');
-      const friendHabitsModal = document.getElementById('friendHabitsModal');
-
-      // Load friends on page load
-      loadFriends();
-
-      // Event Listeners
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout?')) {
-          storage.clearUser();
-          redirect('index.html');
-        }
-      });
-
-      document.getElementById('copyCodeBtn').addEventListener('click', () => {
-        navigator.clipboard
-          .writeText(user.shareCode)
-          .then(() => {
-            showAlert('Share code copied to clipboard!', 'success');
-          })
-          .catch(() => {
-            showAlert('Failed to copy code', 'error');
-          });
-      });
-
-      document
-        .getElementById('refreshBtn')
-        .addEventListener('click', loadFriends);
-
-      document
-        .getElementById('addFriendForm')
-        .addEventListener('submit', async (e) => {
-          e.preventDefault();
-          await addFriend();
-        });
-
-      document
-        .getElementById('closeModalBtn')
-        .addEventListener('click', closeModal);
-
-      friendHabitsModal.addEventListener('click', (e) => {
-        if (e.target === friendHabitsModal) {
-          closeModal();
-        }
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (
-          e.key === 'Escape' &&
-          friendHabitsModal.classList.contains('active')
-        ) {
-          closeModal();
-        }
-      });
-
-      // Functions
-      function showAlert(message, type) {
-        alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-        setTimeout(() => {
-          alertContainer.innerHTML = '';
-        }, 3000);
-      }
-
-      async function loadFriends() {
-        loadingState.classList.remove('hidden');
-        friendsGrid.innerHTML = '';
-        emptyState.classList.add('hidden');
-
-        try {
-          const data = await friendsAPI.getFriends(user.userId);
-          loadingState.classList.add('hidden');
-
-          friendCount.textContent = data.count;
-
-          if (data.friends.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-          }
-
-          renderFriends(data.friends);
-        } catch (error) {
-          loadingState.classList.add('hidden');
-          showAlert(error.message, 'error');
-        }
-      }
-
-      function renderFriends(friends) {
-        friendsGrid.innerHTML = friends
-          .map((friend) => {
-            const initial = friend.username.charAt(0).toUpperCase();
-            const friendId = String(friend.userId || friend._id || '');
-
-            return `
-          <div class="friend-card">
-            <div class="friend-header">
-              <div class="friend-avatar">${initial}</div>
-              <div class="friend-info">
-                <h3>${escapeHtml(friend.username)}</h3>
-                <div class="friend-code">${escapeHtml(friend.shareCode)}</div>
-              </div>
-            </div>
-
-            <div class="friend-stats">
-              <div class="stat-item">
-                <span class="stat-label">Friends since</span>
-                <span class="stat-value">${formatDate(friend.createdAt)}</span>
-              </div>
-            </div>
-
-            <div class="friend-actions">
-              <button 
-                type="button"
-                class="btn btn-primary btn-sm btn-view-habits" 
-                data-friend-id="${escapeHtml(friendId)}"
-                data-friend-name="${escapeHtml(friend.username)}"
-                data-friend-code="${escapeHtml(friend.shareCode)}"
-              >
-                👁️ View Habits
-              </button>
-              <button 
-                type="button"
-                class="btn btn-danger btn-sm btn-remove-friend" 
-                data-friend-id="${escapeHtml(friendId)}"
-                data-friend-name="${escapeHtml(friend.username)}"
-              >
-                🗑️ Remove
-              </button>
-            </div>
-          </div>
-        `;
-          })
-          .join('');
-
-        friendsGrid.querySelectorAll('.btn-view-habits').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.friendId;
-            const name = e.currentTarget.dataset.friendName;
-            const code = e.currentTarget.dataset.friendCode;
-            viewFriendHabits(id, name, code);
-          });
-        });
-
-        friendsGrid.querySelectorAll('.btn-remove-friend').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.friendId;
-            const name = e.currentTarget.dataset.friendName;
-            removeFriend(id, name);
-          });
-        });
-      }
-
-      async function addFriend() {
-        const shareCode = document
-          .getElementById('friendShareCode')
-          .value.trim()
-          .toUpperCase();
-
-        try {
-          const submitBtn = document.querySelector(
-            '#addFriendForm button[type="submit"]'
-          );
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Adding...';
-
-          const data = await friendsAPI.add(user.userId, shareCode);
-
-          showAlert(`✅ ${data.friend.username} added as friend!`, 'success');
-          document.getElementById('addFriendForm').reset();
-          loadFriends();
-        } catch (error) {
-          showAlert(error.message, 'error');
-        } finally {
-          const submitBtn = document.querySelector(
-            '#addFriendForm button[type="submit"]'
-          );
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Add Friend';
-        }
-      }
-
-      async function viewFriendHabits(friendId, friendName, shareCode) {
-        const fId = String(friendId || '');
-        if (!fId) {
-          showAlert('Invalid friend', 'error');
-          return;
-        }
-
-        try {
-          const initial = friendName.charAt(0).toUpperCase();
-          document.getElementById('modalAvatar').textContent = initial;
-          document.getElementById('modalFriendName').textContent = friendName;
-          document.getElementById('modalFriendCode').textContent = shareCode;
-          document.getElementById('spotlightStats').classList.add('hidden');
-
-          friendHabitsModal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-
-          document
-            .getElementById('modalLoadingState')
-            .classList.remove('hidden');
-          document.getElementById('modalHabitsList').innerHTML = '';
-
-          const data = await friendsAPI.getFriendHabits(
-            String(user.userId),
-            fId
-          );
-
-          document.getElementById('modalLoadingState').classList.add('hidden');
-          document.getElementById('spotlightStats').classList.remove('hidden');
-
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const completedToday = data.habits.filter((h) => {
-            if (!h.completions || h.completions.length === 0) return false;
-            return h.completions.some((c) => {
-              const d = new Date(c.date);
-              d.setHours(0, 0, 0, 0);
-              return d.getTime() === today.getTime();
-            });
-          }).length;
-
-          document.getElementById('statTotal').textContent =
-            data.habits.length + ' habits';
-          document.getElementById('statCompletedToday').textContent =
-            completedToday + ' completed today';
-
-          if (data.habits.length === 0) {
-            document.getElementById('modalHabitsList').innerHTML = `
-            <div class="no-habits">
-              <div class="no-habits-icon">🎯</div>
-              <p>${escapeHtml(friendName)} hasn't created any habits yet.</p>
-            </div>
-          `;
-            return;
-          }
-
-          renderFriendHabits(data.habits);
-        } catch (error) {
-          document.getElementById('modalLoadingState').classList.add('hidden');
-          document.getElementById('spotlightStats').classList.add('hidden');
-          document.getElementById('modalHabitsList').innerHTML = `
-          <div class="alert alert-error">${escapeHtml(error.message)}</div>
-          <button type="button" class="btn btn-secondary mt-2" id="modalCloseOnError">Close</button>
-          `;
-          document
-            .getElementById('modalCloseOnError')
-            ?.addEventListener('click', closeModal);
-        }
-      }
-
-      function renderFriendHabits(habits) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        document.getElementById('modalHabitsList').innerHTML = habits
-          .map((habit) => {
-            const completedToday =
-              habit.completions &&
-              habit.completions.some((c) => {
-                const d = new Date(c.date);
-                d.setHours(0, 0, 0, 0);
-                return d.getTime() === today.getTime();
-              });
-
-            return `
-        <div class="habit-item ${completedToday ? 'completed-today' : ''}">
-          <h4>${escapeHtml(habit.name)}</h4>
-          ${habit.description ? `<p>${escapeHtml(habit.description)}</p>` : ''}
-          <div class="habit-streak">
-            <span>🔥</span>
-            <span>${habit.currentStreak || 0}</span>
-            <span class="streak-text">day streak</span>
-          </div>
-          ${
-            completedToday
-              ? '<span class="completed-badge">✓ Completed today</span>'
-              : ''
-          }
-          <div class="habit-meta">
-            Created ${formatDate(habit.createdAt)}
-          </div>
-        </div>
-      `;
-          })
-          .join('');
-      }
-
-      async function removeFriend(friendId, friendName) {
-        if (
-          !confirm(
-            `Are you sure you want to remove ${friendName} from your friends?`
-          )
-        ) {
-          return;
-        }
-
-        try {
-          await friendsAPI.remove(String(user.userId), String(friendId));
-          showAlert(`${friendName} removed from friends`, 'success');
-          loadFriends();
-        } catch (error) {
-          showAlert(error.message, 'error');
-        }
-      }
-
-      function closeModal() {
-        friendHabitsModal.classList.remove('active');
-        document.body.style.overflow = '';
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
-    </script>
+    <script type="module" src="./js/friends.js"></script>
   </body>
 </html>

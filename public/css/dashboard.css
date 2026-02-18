@@ -21,9 +21,10 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
+  --app-wallpaper: url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.34) 0%, rgba(2, 6, 23, 0.5) 100%),
-    url('../img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
+    var(--app-wallpaper);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -54,10 +55,10 @@ body::after {
 }
 
 .app-bar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.42) 0%, rgba(2, 6, 23, 0) 100%);
-  backdrop-filter: blur(4px);
-  border-bottom: none;
+  position: sticky; top: 0; left: 0; right: 0; z-index: 100;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.44) 0%, rgba(2, 6, 23, 0.18) 100%);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.12);
   padding: 14px 24px;
   margin-bottom: 0;
 }
@@ -127,7 +128,7 @@ body::after {
 }
 .profile-btn:hover { box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.22); }
 
-.page { max-width: 1300px; margin: 0 auto; padding: 104px 24px 54px; display: flex; flex-direction: column; gap: 24px; }
+.page { max-width: 1300px; margin: 0 auto; padding: 28px 24px 54px; display: flex; flex-direction: column; gap: 24px; }
 
 .card {
   background: var(--surface); border: 1px solid var(--border);
@@ -678,7 +679,7 @@ body::after {
   }
 
   .page {
-    padding: 92px 14px 38px;
+    padding: 18px 14px 38px;
   }
 
   .card {

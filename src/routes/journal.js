@@ -1,6 +1,6 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 import { getDB } from '../db/connection.js';
+import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
@@ -8,13 +8,14 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { userId, date, content, images } = req.body;
+    const userObjectId = toObjectIdOrNull(userId);
 
     // Validation
     if (!userId || !date) {
       return res.status(400).json({ error: 'userId and date are required' });
     }
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -27,12 +28,12 @@ router.post('/', async (req, res) => {
 
     // Check if entry already exists
     const existingEntry = await journalCollection.findOne({
-      userId: new ObjectId(userId),
+      userId: userObjectId,
       date: entryDate,
     });
 
     const journalEntry = {
-      userId: new ObjectId(userId),
+      userId: userObjectId,
       date: entryDate,
       content: content || '',
       images: images || [],
@@ -68,8 +69,9 @@ router.post('/', async (req, res) => {
 router.get('/user/:userId/date/:date', async (req, res) => {
   try {
     const { userId, date } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -80,7 +82,7 @@ router.get('/user/:userId/date/:date', async (req, res) => {
     entryDate.setHours(0, 0, 0, 0);
 
     const entry = await journalCollection.findOne({
-      userId: new ObjectId(userId),
+      userId: userObjectId,
       date: entryDate,
     });
 
@@ -105,8 +107,9 @@ router.get('/user/:userId/date/:date', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -114,7 +117,7 @@ router.get('/user/:userId', async (req, res) => {
     const journalCollection = db.collection('journal');
 
     const entries = await journalCollection
-      .find({ userId: new ObjectId(userId) })
+      .find({ userId: userObjectId })
       .sort({ date: -1 })
       .toArray();
 
@@ -133,8 +136,9 @@ router.get('/user/:userId', async (req, res) => {
 router.delete('/:entryId', async (req, res) => {
   try {
     const { entryId } = req.params;
+    const entryObjectId = toObjectIdOrNull(entryId);
 
-    if (!ObjectId.isValid(entryId)) {
+    if (!entryObjectId) {
       return res.status(400).json({ error: 'Invalid entryId' });
     }
 
@@ -142,7 +146,7 @@ router.delete('/:entryId', async (req, res) => {
     const journalCollection = db.collection('journal');
 
     const result = await journalCollection.deleteOne({
-      _id: new ObjectId(entryId),
+      _id: entryObjectId,
     });
 
     if (result.deletedCount === 0) {

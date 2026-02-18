@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import { getDB } from '../db/connection.js';
 import { generateShareCode, isValidUsername } from '../utils/helpers.js';
-import { ObjectId } from 'mongodb';
+import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
@@ -117,8 +117,9 @@ router.post('/login', async (req, res) => {
 router.delete('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -127,22 +128,22 @@ router.delete('/user/:userId', async (req, res) => {
     const habitsCollection = db.collection('habits');
 
     // Check if user exists
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: userObjectId });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     // Delete all user's habits
-    await habitsCollection.deleteMany({ userId: new ObjectId(userId) });
+    await habitsCollection.deleteMany({ userId: userObjectId });
 
     // Remove user from other users' friends lists
     await usersCollection.updateMany(
-      { friends: new ObjectId(userId) },
-      { $pull: { friends: new ObjectId(userId) } }
+      { friends: userObjectId },
+      { $pull: { friends: userObjectId } }
     );
 
     // Delete the user
-    await usersCollection.deleteOne({ _id: new ObjectId(userId) });
+    await usersCollection.deleteOne({ _id: userObjectId });
 
     res.status(200).json({
       message: 'User account and all associated data deleted successfully',
@@ -158,8 +159,9 @@ router.put('/user/:userId/password', async (req, res) => {
   try {
     const { userId } = req.params;
     const { currentPassword, newPassword } = req.body;
+    const userObjectId = toObjectIdOrNull(userId);
 
-    if (!ObjectId.isValid(userId)) {
+    if (!userObjectId) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
@@ -179,7 +181,7 @@ router.put('/user/:userId/password', async (req, res) => {
     const usersCollection = db.collection('users');
 
     // Find user
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: userObjectId });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -198,7 +200,7 @@ router.put('/user/:userId/password', async (req, res) => {
 
     // Update password
     await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: userObjectId },
       { $set: { password: hashedPassword } }
     );
 

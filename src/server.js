@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import habitRoutes from './routes/habits.js';
 import friendRoutes from './routes/friends.js';
 import journalRoutes from './routes/journal.js';
+import assetsRoutes from './routes/assets.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/assets', assetsRoutes);
 
 // API health check
 app.get('/api/health', (req, res) => {
