@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HabitFlow</title>
+<link rel="stylesheet" href="css/common.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="container">
+    <a href="home.html" class="app-bar-brand">HabitFlow</a>
+    <nav class="app-bar-nav">
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="friends.html" class="nav-link">Friends</a>
+      <div class="profile-dropdown">
+        <button
+          type="button"
+          class="profile-btn"
+          id="profileBtn"
+          aria-label="Open profile menu"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+        <div class="profile-menu" id="profileMenu">
+          <a href="#" id="logoutLink">Logout</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- 1. ACTIVITY HEATMAP -->
+  <div class="card">
+    <div class="row-between">
+      <div>
+        <span class="section-label">Activity Heatmap</span>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="hmSummary"></div>
+      </div>
+      <span id="hmRangeLabel" style="font-size:14px;font-weight:700;color:var(--accent);font-family:'Lora', Georgia, serif;"></span>
+    </div>
+    <div id="hmWrap" style="margin-bottom:16px"></div>
+    <div class="legend">
+      <span>Less</span>
+      <div class="lswatch" style="background:rgba(148,163,184,.2)"></div>
+      <div class="lswatch" style="background:rgba(251,191,36,.3)"></div>
+      <div class="lswatch" style="background:rgba(245,158,11,.52)"></div>
+      <div class="lswatch" style="background:rgba(249,115,22,.75)"></div>
+      <div class="lswatch" style="background:#ef4444"></div>
+      <span>More</span>
+    </div>
+  </div>
+
+  <!-- 2. STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🌱</div>
+      <div class="stat-val" id="statActiveHabits">0</div>
+      <div class="stat-lbl">Active Habits</div>
+      <div class="stat-sub" id="statActiveSub">0 done today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-val" id="statBestStreak">0</div>
+      <div class="stat-lbl">Best Streak</div>
+      <div class="stat-sub" id="statBestSub">No streak yet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✦</div>
+      <div class="stat-val" id="statCompletionRate">0%</div>
+      <div class="stat-lbl">Completion Rate</div>
+      <div class="stat-sub" id="statCompletionSub">Last 30 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-val" id="statDaysLogged">0</div>
+      <div class="stat-lbl">Days Logged</div>
+      <div class="stat-sub" id="statDaysSub">This month</div>
+    </div>
+  </div>
+
+  <!-- 3. STREAK PROGRESS -->
+  <div class="card">
+    <div class="row-between">
+      <span class="section-label">Streak Progress</span>
+      <span style="font-size:12px;color:var(--muted)">Last 30 days</span>
+    </div>
+    <div id="streakProgressList"></div>
+    <div style="margin-top:20px">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:12px;letter-spacing:.3px">THIS WEEK</div>
+      <div class="week-row" id="weekRow"></div>
+    </div>
+  </div>
+
+  <!-- 4. JOURNAL -->
+  <div class="journal-wrap">
+    <div class="jtape"></div>
+    <div class="jtape r"></div>
+    <div class="jhead">
+      <div>
+        <div class="jdate" id="jDate"></div>
+        <div class="jsub">Daily Journal</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="jnav" id="jPrev">&#8249;</button>
+        <input type="date" id="jDatePicker" class="jdate-picker" />
+        <button class="jnav" id="jToday">Today</button>
+        <button class="jnav" id="jNext">&#8250;</button>
+        <button class="jsave" id="jSave">Save</button>
+      </div>
+    </div>
+    <div class="jbody">
+      <div class="jphotos">
+        <div class="jplabel">📷 Memories</div>
+        <label class="dropzone" for="photoIn">
+          <input type="file" id="photoIn" accept="image/*" multiple style="display:none"/>
+          <div id="dropDef"><div class="dicon">🖼️</div><div class="dtext">Click to add photos</div></div>
+          <div id="pgrid" class="pgrid" style="display:none"></div>
+        </label>
+      </div>
+      <div class="jwriting">
+        <div class="jwlabel">✍️ Today's thoughts...</div>
+        <textarea class="jtextarea" id="jEntryText" placeholder="Dear diary, today I..."></textarea>
+      </div>
+    </div>
+    <div class="jfoot">
+      <div class="moodrow">
+        <button class="moodbtn">😊</button>
+        <button class="moodbtn">😌</button>
+        <button class="moodbtn">😴</button>
+        <button class="moodbtn">😔</button>
+        <button class="moodbtn">🤩</button>
+      </div>
+      <div class="jpnum">✦ today's entry</div>
+    </div>
+  </div>
+
+  <!-- 5. MY HABITS -->
+  <div class="card">
+    <div class="row-between">
+      <div>
+        <span class="section-label">My Habits</span>
+        <div id="habitDateLabel" class="habit-date-label"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" id="openAddBtn">+ Add Habit</button>
+        <button class="edit-toggle" id="editToggle"><div class="edot"></div> Edit</button>
+      </div>
+    </div>
+    <div class="add-form" id="addForm">
+      <input class="finput" id="hNameIn" placeholder="Habit name e.g. Read 20 pages"/>
+      <input class="finput" id="hDescIn" placeholder="Why this habit? (optional)"/>
+      <div class="frow">
+        <button class="btn btn-primary btn-sm" id="saveHabit">Save</button>
+        <button class="btn btn-ghost btn-sm" id="cancelAdd">Cancel</button>
+      </div>
+    </div>
+    <div class="habits-list" id="habitsList"></div>
+  </div>
+
+</div>
+
+<script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>

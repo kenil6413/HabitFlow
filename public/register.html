@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HabitFlow - Register</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+  </head>
+  <body class="auth-page">
+    <div class="auth-container">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h1>HabitFlow</h1>
+          <p>Start building the identity of someone who shows up.</p>
+        </div>
+
+        <div class="auth-requirements">
+          <strong>Requirements:</strong>
+          <ul>
+            <li>Username: 3-20 alphanumeric characters</li>
+            <li>Password: Minimum 6 characters</li>
+          </ul>
+          <p class="hint">
+            After signing up, visit your dashboard for step-by-step
+            instructions.
+          </p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <form id="registerForm" class="auth-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Choose a username"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Choose a password"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Confirm your password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            Create Account
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <p>Already have an account? <a href="index.html">Login here</a></p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { authAPI } from './js/api.js';
+      import { storage, redirect } from './js/utils.js';
+
+      // Redirect if already logged in
+      if (storage.isLoggedIn()) {
+        redirect('home.html');
+      }
+
+      const registerForm = document.getElementById('registerForm');
+      const alertContainer = document.getElementById('alertContainer');
+
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword =
+          document.getElementById('confirmPassword').value;
+
+        // Clear previous alerts
+        alertContainer.innerHTML = '';
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+          alertContainer.innerHTML =
+            '<div class="alert alert-error">Passwords do not match!</div>';
+          return;
+        }
+
+        try {
+          // Disable submit button
+          const submitBtn = registerForm.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Creating account...';
+
+          const data = await authAPI.register(username, password);
+
+          // Save user data to localStorage
+          storage.setUser({
+            userId: data.userId,
+            username: data.username,
+            shareCode: data.shareCode,
+          });
+
+          // Show success message with share code
+          alertContainer.innerHTML = `
+          <div class="alert alert-success">
+            <strong>Account created successfully!</strong><br>
+            Your share code: <strong>${data.shareCode}</strong><br>
+            Share this code with friends to connect!<br>
+            Redirecting to dashboard...
+          </div>
+        `;
+
+          // Redirect to home
+          setTimeout(() => {
+            redirect('home.html');
+          }, 3000);
+        } catch (error) {
+          alertContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+
+          // Re-enable submit button
+          const submitBtn = registerForm.querySelector('button[type="submit"]');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Account';
+        }
+      });
+    </script>
+  </body>
+</html>

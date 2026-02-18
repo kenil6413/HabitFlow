@@ -1,0 +1,88 @@
+/* Auth module - Login & Register pages */
+
+body.auth-page {
+  background: linear-gradient(180deg, #fffbf7 0%, #fef3e7 50%, #f8fafc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  width: 100%;
+}
+
+.auth-card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px;
+  max-width: 440px;
+  width: 100%;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-header h1 {
+  color: var(--primary-dark);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 2.25rem;
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  color: var(--gray);
+  font-size: 1rem;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.auth-footer a {
+  color: var(--primary-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-form .btn-full {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.auth-requirements {
+  background: var(--light);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.auth-requirements ul {
+  margin-left: 20px;
+  margin-top: 8px;
+}
+
+.auth-requirements li {
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.auth-requirements .hint {
+  margin-top: 10px;
+  font-size: 13px;
+}

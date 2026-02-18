@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HabitFlow - Home</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/home.css" />
+  </head>
+  <body class="home-page">
+    <header class="app-bar">
+      <div class="container">
+        <a href="home.html" class="app-bar-brand">HabitFlow</a>
+        <nav class="app-bar-nav">
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="friends.html" class="nav-link">Friends</a>
+          <div class="profile-dropdown">
+            <button
+              type="button"
+              class="profile-btn"
+              id="profileBtn"
+              aria-label="Open profile menu"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </button>
+            <div class="profile-menu" id="profileMenu">
+              <a href="#" id="changePasswordLink">Change Password</a>
+              <a href="#" id="logoutLink">Logout</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="home-main container" aria-label="Home overview">
+      <section class="widgets-row" aria-label="Clock and calendar widgets">
+        <article class="pomodoro-widget" aria-label="Pomodoro timer">
+          <div class="pomodoro-shell">
+            <div class="pomodoro-mode">
+              <button type="button" class="mode-btn active" id="focusModeBtn">FOCUS</button>
+              <button type="button" class="mode-btn" id="breakModeBtn">BREAK</button>
+            </div>
+            <div class="pomodoro-ring" id="pomodoroRing" style="--progress-deg: 0deg">
+              <p class="pomodoro-time" id="pomodoroTime">25:00</p>
+            </div>
+            <div class="pomodoro-duration">
+              <button type="button" class="duration-btn" id="durationDecreaseBtn" aria-label="Decrease timer">
+                -
+              </button>
+              <span class="duration-value" id="durationValue">25 min</span>
+              <button type="button" class="duration-btn" id="durationIncreaseBtn" aria-label="Increase timer">
+                +
+              </button>
+            </div>
+            <div class="pomodoro-actions">
+              <button type="button" class="pomodoro-btn pomodoro-start" id="pomodoroStartBtn">
+                Start
+              </button>
+              <button type="button" class="pomodoro-btn" id="pomodoroResetBtn">Reset</button>
+            </div>
+          </div>
+        </article>
+
+        <section class="today-focus" aria-label="Today's habits">
+          <h2 class="today-title">TODAY</h2>
+          <p class="today-progress" id="todayProgress">0 of 0 habits completed</p>
+          <ul class="today-habit-list" id="todayHabitList"></ul>
+        </section>
+
+        <article class="calendar-widget" aria-label="Monthly calendar">
+          <div class="calendar-header">
+            <button
+              type="button"
+              class="calendar-nav-btn"
+              id="prevMonthBtn"
+              aria-label="Previous month"
+            >
+              &lt;
+            </button>
+            <h2 class="calendar-month-year" id="calendarMonthYear"></h2>
+            <button
+              type="button"
+              class="calendar-nav-btn"
+              id="nextMonthBtn"
+              aria-label="Next month"
+            >
+              &gt;
+            </button>
+          </div>
+          <div class="calendar-weekdays">
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+            <div>Sun</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </article>
+      </section>
+
+      <div class="home-actions">
+        <a href="dashboard.html" class="btn home-cta">Start Logging</a>
+      </div>
+
+      <section class="quote-strip" id="quoteStrip" aria-label="Motivational quote">
+        <p class="quote-text" id="quoteText"></p>
+        <p class="quote-author" id="quoteAuthor"></p>
+      </section>
+    </main>
+
+    <div id="changePasswordModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Change Password</h2>
+          <button type="button" class="close-modal" id="closePasswordModalBtn">
+            &times;
+          </button>
+        </div>
+        <div id="passwordAlertContainer"></div>
+        <form id="changePasswordForm">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input
+              type="password"
+              id="currentPassword"
+              placeholder="Enter current password"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              placeholder="Enter new password (min 6 characters)"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirm New Password</label>
+            <input
+              type="password"
+              id="confirmNewPassword"
+              placeholder="Confirm new password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module">
+      import { authAPI, habitsAPI } from './js/api.js';
+      import { storage, redirect, requireAuth } from './js/utils.js';
+
+      requireAuth();
+
+      const user = storage.getUser();
+      if (!user) {
+        redirect('index.html');
+        throw new Error('User session missing');
+      }
+
+      const profileBtn = document.getElementById('profileBtn');
+      const profileMenu = document.getElementById('profileMenu');
+      const todayHabitList = document.getElementById('todayHabitList');
+      const todayProgress = document.getElementById('todayProgress');
+
+      const completedByDate = new Map();
+      let totalHabits = 0;
+
+      profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileMenu.classList.toggle('active');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+          profileMenu.classList.remove('active');
+        }
+      });
+
+      document.getElementById('logoutLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        storage.clearUser();
+        redirect('index.html');
+      });
+
+      const changePasswordModal = document.getElementById('changePasswordModal');
+      const changePasswordForm = document.getElementById('changePasswordForm');
+      const passwordAlertContainer = document.getElementById('passwordAlertContainer');
+
+      document.getElementById('changePasswordLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        profileMenu.classList.remove('active');
+        changePasswordModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+
+      function closePasswordModal() {
+        changePasswordModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        changePasswordForm.reset();
+        passwordAlertContainer.innerHTML = '';
+      }
+
+      document
+        .getElementById('closePasswordModalBtn')
+        .addEventListener('click', closePasswordModal);
+
+      changePasswordModal.addEventListener('click', (e) => {
+        if (e.target === changePasswordModal) {
+          closePasswordModal();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && changePasswordModal.classList.contains('active')) {
+          closePasswordModal();
+        }
+      });
+
+      changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+        passwordAlertContainer.innerHTML = '';
+
+        if (newPassword !== confirmNewPassword) {
+          passwordAlertContainer.innerHTML =
+            '<div class="alert alert-error">New passwords do not match.</div>';
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          passwordAlertContainer.innerHTML =
+            '<div class="alert alert-error">New password must be at least 6 characters.</div>';
+          return;
+        }
+
+        if (currentPassword === newPassword) {
+          passwordAlertContainer.innerHTML =
+            '<div class="alert alert-error">New password must be different from current password.</div>';
+          return;
+        }
+
+        try {
+          const submitBtn = changePasswordForm.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Updating...';
+
+          await authAPI.changePassword(user.userId, currentPassword, newPassword);
+
+          passwordAlertContainer.innerHTML =
+            '<div class="alert alert-success">Password updated successfully.</div>';
+          changePasswordForm.reset();
+
+          setTimeout(() => {
+            closePasswordModal();
+          }, 1300);
+        } catch (error) {
+          passwordAlertContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        } finally {
+          const submitBtn = changePasswordForm.querySelector('button[type="submit"]');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Update Password';
+        }
+      });
+
+      function dateKey(dateValue) {
+        const d = new Date(dateValue);
+        d.setHours(0, 0, 0, 0);
+        return d.toISOString().slice(0, 10);
+      }
+
+      function todayKey() {
+        return dateKey(new Date());
+      }
+
+      function computeCompletedMap(habits) {
+        completedByDate.clear();
+
+        habits.forEach((habit) => {
+          (habit.completions || []).forEach((completion) => {
+            const key = dateKey(completion.date);
+            if (!completedByDate.has(key)) {
+              completedByDate.set(key, new Set());
+            }
+            completedByDate.get(key).add(String(habit._id));
+          });
+        });
+      }
+
+      function renderTodayHabits(habits) {
+        const key = todayKey();
+        const completedToday = completedByDate.get(key) || new Set();
+
+        if (habits.length === 0) {
+          todayHabitList.innerHTML = '<li class="today-empty">No habits yet. Add your first habit from Dashboard.</li>';
+          todayProgress.textContent = '0 of 0 habits completed';
+          return;
+        }
+
+        let doneCount = 0;
+
+        todayHabitList.innerHTML = habits
+          .map((habit) => {
+            const habitId = String(habit._id);
+            const isDone = completedToday.has(habitId);
+            if (isDone) doneCount++;
+
+            return `
+              <li class="today-habit ${isDone ? 'done' : ''}" data-habit-id="${habitId}">
+                <label class="today-habit-label">
+                  <input type="checkbox" ${isDone ? 'checked disabled' : ''} />
+                  <span class="habit-text">${escapeHtml(habit.name)}</span>
+                </label>
+              </li>
+            `;
+          })
+          .join('');
+
+        todayProgress.textContent = `${doneCount} of ${habits.length} habits completed`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      async function markHabitDone(habitId, checkboxEl) {
+        checkboxEl.disabled = true;
+
+        try {
+          await habitsAPI.complete(habitId);
+
+          const parent = checkboxEl.closest('.today-habit');
+          if (parent) {
+            parent.classList.add('done');
+          }
+
+          const key = todayKey();
+          if (!completedByDate.has(key)) {
+            completedByDate.set(key, new Set());
+          }
+          completedByDate.get(key).add(habitId);
+
+          const done = completedByDate.get(key).size;
+          todayProgress.textContent = `${done} of ${totalHabits} habits completed`;
+          renderCalendar();
+        } catch (error) {
+          checkboxEl.checked = false;
+          checkboxEl.disabled = false;
+        }
+      }
+
+      // Pomodoro
+      const MIN_FOCUS_MINUTES = 25;
+      const MIN_BREAK_MINUTES = 5;
+      const STEP_FOCUS_MINUTES = 25;
+      const STEP_BREAK_MINUTES = 5;
+
+      let focusMinutes = MIN_FOCUS_MINUTES;
+      let breakMinutes = MIN_BREAK_MINUTES;
+      let pomodoroMode = 'focus';
+      let remainingSeconds = focusMinutes * 60;
+      let pomodoroTimerId = null;
+      let modeTotalSeconds = focusMinutes * 60;
+
+      const focusModeBtn = document.getElementById('focusModeBtn');
+      const breakModeBtn = document.getElementById('breakModeBtn');
+      const pomodoroRing = document.getElementById('pomodoroRing');
+      const pomodoroTime = document.getElementById('pomodoroTime');
+      const pomodoroStartBtn = document.getElementById('pomodoroStartBtn');
+      const pomodoroResetBtn = document.getElementById('pomodoroResetBtn');
+      const durationDecreaseBtn = document.getElementById('durationDecreaseBtn');
+      const durationIncreaseBtn = document.getElementById('durationIncreaseBtn');
+      const durationValue = document.getElementById('durationValue');
+
+      function formatPomodoroTime(totalSeconds) {
+        const minutes = Math.floor(totalSeconds / 60)
+          .toString()
+          .padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${seconds}`;
+      }
+
+      function renderPomodoro() {
+        pomodoroTime.textContent = formatPomodoroTime(remainingSeconds);
+        const progress = Math.max(0, Math.min(1, (modeTotalSeconds - remainingSeconds) / modeTotalSeconds));
+        pomodoroRing.style.setProperty('--progress-deg', `${Math.round(progress * 360)}deg`);
+        durationValue.textContent =
+          `${pomodoroMode === 'focus' ? focusMinutes : breakMinutes} min`;
+      }
+
+      function setPomodoroMode(nextMode) {
+        pomodoroMode = nextMode;
+        const isFocus = nextMode === 'focus';
+        focusModeBtn.classList.toggle('active', isFocus);
+        breakModeBtn.classList.toggle('active', !isFocus);
+        modeTotalSeconds = (isFocus ? focusMinutes : breakMinutes) * 60;
+        remainingSeconds = modeTotalSeconds;
+        clearInterval(pomodoroTimerId);
+        pomodoroTimerId = null;
+        pomodoroStartBtn.textContent = 'Start';
+        renderPomodoro();
+      }
+
+      function togglePomodoro() {
+        if (pomodoroTimerId) {
+          clearInterval(pomodoroTimerId);
+          pomodoroTimerId = null;
+          pomodoroStartBtn.textContent = 'Start';
+          return;
+        }
+
+        pomodoroStartBtn.textContent = 'Pause';
+        pomodoroTimerId = setInterval(() => {
+          remainingSeconds--;
+          if (remainingSeconds <= 0) {
+            clearInterval(pomodoroTimerId);
+            pomodoroTimerId = null;
+            remainingSeconds = 0;
+            pomodoroStartBtn.textContent = 'Start';
+          }
+          renderPomodoro();
+        }, 1000);
+      }
+
+      focusModeBtn.addEventListener('click', () => setPomodoroMode('focus'));
+      breakModeBtn.addEventListener('click', () => setPomodoroMode('break'));
+      pomodoroStartBtn.addEventListener('click', togglePomodoro);
+      pomodoroResetBtn.addEventListener('click', () => setPomodoroMode(pomodoroMode));
+
+      durationIncreaseBtn.addEventListener('click', () => {
+        if (pomodoroMode === 'focus') {
+          focusMinutes += STEP_FOCUS_MINUTES;
+        } else {
+          breakMinutes += STEP_BREAK_MINUTES;
+        }
+        setPomodoroMode(pomodoroMode);
+      });
+
+      durationDecreaseBtn.addEventListener('click', () => {
+        if (pomodoroMode === 'focus') {
+          focusMinutes = Math.max(MIN_FOCUS_MINUTES, focusMinutes - STEP_FOCUS_MINUTES);
+        } else {
+          breakMinutes = Math.max(MIN_BREAK_MINUTES, breakMinutes - STEP_BREAK_MINUTES);
+        }
+        setPomodoroMode(pomodoroMode);
+      });
+
+      renderPomodoro();
+
+      let currentMonth = new Date().getMonth();
+      let currentYear = new Date().getFullYear();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      function completionStatusFor(dateObj) {
+        if (totalHabits === 0) return null;
+        if (dateObj.getTime() > today.getTime()) return null;
+
+        const key = dateObj.toISOString().slice(0, 10);
+        const doneCount = (completedByDate.get(key) || new Set()).size;
+
+        if (doneCount === 0) return 'none';
+        if (doneCount === totalHabits) return 'full';
+        return 'partial';
+      }
+
+      function renderCalendar() {
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = (firstDay.getDay() + 6) % 7;
+
+        const monthNames = [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
+        ];
+
+        document.getElementById('calendarMonthYear').textContent =
+          `${monthNames[currentMonth]} ${currentYear}`;
+
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        for (let i = 0; i < startingDayOfWeek; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'calendar-day empty';
+          grid.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const cell = document.createElement('div');
+          cell.className = 'calendar-day';
+          cell.textContent = day;
+
+          const cellDate = new Date(currentYear, currentMonth, day);
+          cellDate.setHours(0, 0, 0, 0);
+
+          if (
+            cellDate.getTime() === today.getTime() &&
+            currentMonth === today.getMonth() &&
+            currentYear === today.getFullYear()
+          ) {
+            cell.classList.add('today');
+          }
+
+          const status = completionStatusFor(cellDate);
+          if (status) {
+            cell.classList.add('has-dot', `dot-${status}`);
+          }
+
+          grid.appendChild(cell);
+        }
+      }
+
+      document.getElementById('prevMonthBtn').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        renderCalendar();
+      });
+
+      document.getElementById('nextMonthBtn').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        renderCalendar();
+      });
+
+      todayHabitList.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') {
+          return;
+        }
+
+        if (!target.checked || target.disabled) {
+          return;
+        }
+
+        const habitItem = target.closest('.today-habit');
+        if (!habitItem) {
+          return;
+        }
+
+        const habitId = habitItem.dataset.habitId;
+        if (!habitId) {
+          return;
+        }
+
+        markHabitDone(habitId, target);
+      });
+
+      async function loadHomeData() {
+        try {
+          const result = await habitsAPI.getUserHabits(user.userId);
+          const habits = result.habits || [];
+          totalHabits = habits.length;
+
+          computeCompletedMap(habits);
+          renderTodayHabits(habits);
+          renderCalendar();
+        } catch {
+          todayHabitList.innerHTML =
+            '<li class="today-empty">Unable to load habits. Open Dashboard to refresh.</li>';
+          todayProgress.textContent = 'Could not load progress';
+          totalHabits = 0;
+          completedByDate.clear();
+          renderCalendar();
+        }
+      }
+
+      loadHomeData();
+
+      const quotes = [
+        {
+          text: 'Calm is not the absence of motion, but the presence of intention.',
+          author: 'HabitFlow',
+        },
+        {
+          text: 'Write one clear line, and the day starts to make sense.',
+          author: 'HabitFlow',
+        },
+        {
+          text: 'Small, steady pages become a meaningful life.',
+          author: 'HabitFlow',
+        },
+        {
+          text: 'The quiet routine is where progress learns your name.',
+          author: 'HabitFlow',
+        },
+      ];
+
+      const quoteStrip = document.getElementById('quoteStrip');
+      const quoteText = document.getElementById('quoteText');
+      const quoteAuthor = document.getElementById('quoteAuthor');
+      let quoteIndex = 0;
+
+      function showQuote() {
+        const quote = quotes[quoteIndex];
+        quoteStrip.classList.remove('quote-visible');
+
+        setTimeout(() => {
+          quoteText.textContent = `"${quote.text}"`;
+          quoteAuthor.textContent = `- ${quote.author}`;
+          quoteStrip.classList.add('quote-visible');
+          quoteIndex = (quoteIndex + 1) % quotes.length;
+        }, 260);
+      }
+
+      showQuote();
+      setInterval(showQuote, 6500);
+    </script>
+  </body>
+</html>
