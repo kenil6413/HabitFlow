@@ -1,6 +1,9 @@
 import { habitsAPI, journalAPI } from './api.js';
 import { requireAuth, storage, redirect } from './utils.js';
-import { initProfileDropdown } from './profile-menu.js';
+import {
+  initProfileDropdown,
+  isDeveloperModeEnabled,
+} from './profile-menu.js';
 import {
   escapeHtml,
   startOfDay,
@@ -32,6 +35,7 @@ const state = {
   editMode: false,
   selectedDate: startOfDay(new Date()),
   photos: [],
+  developerMode: false,
 };
 
 function habitIdResolver(habit) {
@@ -45,7 +49,41 @@ function renderHabitsList() {
     isSameDay,
     escapeHtml,
     habitIdResolver,
+    canEditSelectedDate,
   });
+}
+
+function canEditSelectedDate() {
+  if (isSameDay(state.selectedDate, new Date())) return true;
+  if (!state.developerMode) return false;
+
+  const selected = startOfDay(state.selectedDate);
+  const today = startOfDay(new Date());
+  return selected.getTime() <= today.getTime();
+}
+
+async function toggleCompletionForSelectedDate(habitId, doneForSelectedDate) {
+  const selectedDate = startOfDay(state.selectedDate);
+  const today = startOfDay(new Date());
+
+  if (selectedDate.getTime() > today.getTime()) {
+    throw new Error('Cannot change completion for future dates.');
+  }
+
+  if (isSameDay(selectedDate, today)) {
+    if (doneForSelectedDate) {
+      await habitsAPI.undoToday(habitId);
+    } else {
+      await habitsAPI.complete(habitId);
+    }
+    return;
+  }
+
+  await habitsAPI.setCompletionByDate(
+    habitId,
+    toDateKey(selectedDate),
+    !doneForSelectedDate
+  );
 }
 
 function renderAll() {
@@ -110,7 +148,14 @@ async function init() {
     return;
   }
 
-  initProfileDropdown();
+  state.developerMode = isDeveloperModeEnabled();
+
+  initProfileDropdown({
+    onDeveloperModeChange: (enabled) => {
+      state.developerMode = enabled;
+      renderHabitsList();
+    },
+  });
 
   bindHabitEvents({
     state,
@@ -118,6 +163,8 @@ async function init() {
     refresh: refreshHabitsAndRender,
     isSameDay,
     habitIdResolver,
+    canEditSelectedDate,
+    onToggleCompletion: toggleCompletionForSelectedDate,
   });
 
   bindMoodPicker();

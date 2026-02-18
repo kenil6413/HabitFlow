@@ -56,20 +56,20 @@ const authAPI = {
 
 // Habits API
 const habitsAPI = {
-  create: (userId, name, description) =>
+  create: (userId, name, description, plan = {}) =>
     apiCall('/habits', {
       method: 'POST',
-      body: JSON.stringify({ userId, name, description }),
+      body: JSON.stringify({ userId, name, description, ...plan }),
     }),
 
   getUserHabits: (userId) => apiCall(`/habits/user/${userId}`),
 
   getHabit: (habitId) => apiCall(`/habits/${habitId}`),
 
-  update: (habitId, name, description) =>
+  update: (habitId, name, description, plan = {}) =>
     apiCall(`/habits/${habitId}`, {
       method: 'PUT',
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify({ name, description, ...plan }),
     }),
 
   delete: (habitId) =>
@@ -85,6 +85,12 @@ const habitsAPI = {
   undoToday: (habitId) =>
     apiCall(`/habits/${habitId}/complete/today`, {
       method: 'DELETE',
+    }),
+
+  setCompletionByDate: (habitId, date, completed) =>
+    apiCall(`/habits/${habitId}/completion`, {
+      method: 'PUT',
+      body: JSON.stringify({ date, completed }),
     }),
 };
 

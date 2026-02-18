@@ -4,6 +4,18 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>HabitFlow</title>
+<script>
+  (() => {
+    try {
+      const saved = localStorage.getItem('habitflow_wallpaper_url');
+      if (!saved) return;
+      document.documentElement.style.setProperty(
+        '--app-wallpaper',
+        `url('${saved}')`
+      );
+    } catch {}
+  })();
+</script>
 <link rel="stylesheet" href="css/common.css" />
 <link rel="stylesheet" href="css/dashboard.css" />
 </head>
@@ -162,6 +174,12 @@
     <div class="add-form" id="addForm">
       <input class="finput" id="hNameIn" placeholder="Habit name e.g. Read 20 pages"/>
       <input class="finput" id="hDescIn" placeholder="Why this habit? (optional)"/>
+      <div class="fgrid-two">
+        <input class="finput" id="hCueTimeIn" type="time" />
+        <input class="finput" id="hCueLocationIn" placeholder="Where will you do it? (e.g. desk)" />
+      </div>
+      <input class="finput" id="hStackAfterIn" placeholder="After what current habit? (e.g. after coffee)" />
+      <input class="finput" id="hTinyVersionIn" placeholder="2-minute version (e.g. read 1 page)" />
       <div class="frow">
         <button class="btn btn-primary btn-sm" id="saveHabit">Save</button>
         <button class="btn btn-ghost btn-sm" id="cancelAdd">Cancel</button>

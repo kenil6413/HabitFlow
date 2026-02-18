@@ -37,14 +37,25 @@ const elements = {
   quoteText: document.getElementById('quoteText'),
   quoteAuthor: document.getElementById('quoteAuthor'),
   wallpaperNextBtn: document.getElementById('wallpaperNextBtn'),
+  neverMissCard: document.getElementById('neverMissCard'),
+  neverMissHabit: document.getElementById('neverMissHabit'),
+  neverMissText: document.getElementById('neverMissText'),
 };
 
 const state = {
   completedByDate: new Map(),
   totalHabits: 0,
+  habits: [],
+  neverMissHabitId: null,
+  recoveryTimeoutId: null,
 };
 
 const todayKey = () => toDateKey(new Date());
+
+function setNeverMissVisible(visible) {
+  elements.neverMissCard.classList.toggle('is-visible', visible);
+  elements.neverMissCard.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
 
 function computeCompletedMap(habits) {
   state.completedByDate.clear();
@@ -114,6 +125,60 @@ function renderTodayHabits(habits) {
   elements.todayProgress.textContent = `${doneCount} of ${habits.length} habits completed`;
 }
 
+function renderNeverMissTwice(habits) {
+  if (state.recoveryTimeoutId) {
+    clearTimeout(state.recoveryTimeoutId);
+    state.recoveryTimeoutId = null;
+  }
+
+  const todayDone = state.completedByDate.get(todayKey()) || new Set();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayDone = state.completedByDate.get(toDateKey(yesterday)) || new Set();
+
+  const rescueHabits = habits
+    .filter((habit) => {
+      const habitId = String(habit._id);
+      return yesterdayDone.has(habitId) && !todayDone.has(habitId);
+    })
+    .sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0));
+
+  if (!rescueHabits.length) {
+    state.neverMissHabitId = null;
+    elements.neverMissCard.classList.remove('never-miss-card-success');
+    setNeverMissVisible(false);
+    return;
+  }
+
+  const habit = rescueHabits[0];
+  state.neverMissHabitId = String(habit._id);
+  elements.neverMissCard.classList.remove('never-miss-card-success');
+  elements.neverMissHabit.textContent = habit.name;
+
+  if (habit.tinyVersion) {
+    elements.neverMissText.textContent = `Try the 2-minute version now: ${habit.tinyVersion}.`;
+  } else {
+    elements.neverMissText.textContent =
+      'Start with a tiny action now so this habit gets back on track today.';
+  }
+
+  setNeverMissVisible(true);
+}
+
+function showNeverMissRecoveryMessage() {
+  setNeverMissVisible(true);
+  elements.neverMissCard.classList.add('never-miss-card-success');
+  elements.neverMissHabit.textContent = 'Great recovery.';
+  elements.neverMissText.textContent = "You didn't miss twice today.";
+  state.neverMissHabitId = null;
+
+  state.recoveryTimeoutId = window.setTimeout(() => {
+    setNeverMissVisible(false);
+    elements.neverMissCard.classList.remove('never-miss-card-success');
+    state.recoveryTimeoutId = null;
+  }, 1700);
+}
+
 async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
   checkboxEl.disabled = true;
 
@@ -140,6 +205,12 @@ async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
       state.completedByDate.get(key).add(habitId);
     } else {
       state.completedByDate.get(key).delete(habitId);
+    }
+
+    if (shouldBeDone && state.neverMissHabitId === habitId) {
+      showNeverMissRecoveryMessage();
+    } else {
+      renderNeverMissTwice(state.habits);
     }
 
     const done = state.completedByDate.get(key).size;
@@ -185,14 +256,18 @@ async function loadHomeData() {
     const result = await habitsAPI.getUserHabits(user.userId);
     const habits = result.habits || [];
 
+    state.habits = habits;
     state.totalHabits = habits.length;
     computeCompletedMap(habits);
     renderTodayHabits(habits);
+    renderNeverMissTwice(habits);
     calendar.render();
   } catch {
     elements.todayHabitList.innerHTML =
       '<li class="today-empty">Unable to load habits. Open Dashboard to refresh.</li>';
     elements.todayProgress.textContent = 'Could not load progress';
+    state.habits = [];
+    setNeverMissVisible(false);
     state.totalHabits = 0;
     state.completedByDate.clear();
     calendar.render();

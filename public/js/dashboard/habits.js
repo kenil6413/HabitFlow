@@ -14,9 +14,42 @@ export function renderHabits({
   isSameDay,
   escapeHtml,
   habitIdResolver,
+  canEditSelectedDate,
 }) {
+  function to12Hour(time) {
+    if (!time || !time.includes(':')) return time;
+    const [hourRaw, minute] = time.split(':');
+    const hour = Number(hourRaw);
+    if (Number.isNaN(hour)) return time;
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const normalizedHour = hour % 12 || 12;
+    return `${normalizedHour}:${minute} ${period}`;
+  }
+
+  function renderPlanMeta(habit, escapeHtmlValue) {
+    const chips = [];
+
+    if (habit.cueTime) {
+      chips.push(`<span class="habit-chip">At ${escapeHtmlValue(to12Hour(habit.cueTime))}</span>`);
+    }
+    if (habit.cueLocation) {
+      chips.push(`<span class="habit-chip">In ${escapeHtmlValue(habit.cueLocation)}</span>`);
+    }
+    if (habit.stackAfter) {
+      chips.push(`<span class="habit-chip">After ${escapeHtmlValue(habit.stackAfter)}</span>`);
+    }
+    if (!chips.length) return '';
+
+    return `<div class="habit-plan">${chips.join('')}</div>`;
+  }
+
+  function renderTinyVersion(habit, escapeHtmlValue) {
+    if (!habit.tinyVersion) return '';
+    return `<div class="habit-tiny">2-minute version: ${escapeHtmlValue(habit.tinyVersion)}</div>`;
+  }
+
   const list = document.getElementById('habitsList');
-  const selectedIsToday = isSameDay(selectedDate, new Date());
+  const canEdit = canEditSelectedDate();
 
   if (!habits.length) {
     list.innerHTML =
@@ -30,9 +63,11 @@ export function renderHabits({
       const description = habit.description
         ? `<p class="hdesc">${escapeHtml(habit.description)}</p>`
         : '';
+      const planMeta = renderPlanMeta(habit, escapeHtml);
+      const tinyVersion = renderTinyVersion(habit, escapeHtml);
       const actionLabel = doneForSelectedDate
         ? '↺ Undo'
-        : selectedIsToday
+        : canEdit
           ? '✓ Complete'
           : 'View Only';
       const actionClass = doneForSelectedDate ? 'btn-done' : 'btn-complete';
@@ -47,12 +82,14 @@ export function renderHabits({
             <div class="htop">
               <span class="hname">${escapeHtml(habit.name)}</span>
               <button class="btn ${actionClass} btn-sm" data-action="complete" ${
-                selectedIsToday ? '' : 'disabled'
+                canEdit ? '' : 'disabled'
               }>
                 ${actionLabel}
               </button>
             </div>
             ${description}
+            ${planMeta}
+            ${tinyVersion}
             <div class="streak-pill">🔥 ${habit.currentStreak || 0} day streak</div>
           </div>
         </div>
@@ -75,12 +112,27 @@ export function bindHabitEvents({
   refresh,
   isSameDay,
   habitIdResolver,
+  canEditSelectedDate,
+  onToggleCompletion,
 }) {
   const editToggle = document.getElementById('editToggle');
   const habitsList = document.getElementById('habitsList');
   const addForm = document.getElementById('addForm');
   const nameInput = document.getElementById('hNameIn');
   const descInput = document.getElementById('hDescIn');
+  const cueTimeInput = document.getElementById('hCueTimeIn');
+  const cueLocationInput = document.getElementById('hCueLocationIn');
+  const stackAfterInput = document.getElementById('hStackAfterIn');
+  const tinyVersionInput = document.getElementById('hTinyVersionIn');
+
+  function resetAddForm() {
+    nameInput.value = '';
+    descInput.value = '';
+    cueTimeInput.value = '';
+    cueLocationInput.value = '';
+    stackAfterInput.value = '';
+    tinyVersionInput.value = '';
+  }
 
   editToggle.addEventListener('click', () => {
     state.editMode = !state.editMode;
@@ -96,18 +148,24 @@ export function bindHabitEvents({
 
   document.getElementById('cancelAdd').addEventListener('click', () => {
     addForm.classList.remove('open');
+    resetAddForm();
   });
 
   document.getElementById('saveHabit').addEventListener('click', async () => {
     const name = nameInput.value.trim();
     const description = descInput.value.trim();
+    const plan = {
+      cueTime: cueTimeInput.value,
+      cueLocation: cueLocationInput.value.trim(),
+      stackAfter: stackAfterInput.value.trim(),
+      tinyVersion: tinyVersionInput.value.trim(),
+    };
 
     if (!name) return;
 
     try {
-      await habitsAPI.create(state.userId, name, description);
-      nameInput.value = '';
-      descInput.value = '';
+      await habitsAPI.create(state.userId, name, description, plan);
+      resetAddForm();
       addForm.classList.remove('open');
       await refresh();
     } catch (error) {
@@ -130,16 +188,16 @@ export function bindHabitEvents({
 
     try {
       if (action === 'complete') {
-        if (!isSameDay(state.selectedDate, new Date())) {
-          alert('You can only mark completion for today.');
+        if (!canEditSelectedDate()) {
+          alert('Enable Developer Mode from profile to edit past-day completions.');
           return;
         }
-        const doneForToday = isHabitDoneOnDate(habit, new Date(), isSameDay);
-        if (doneForToday) {
-          await habitsAPI.undoToday(habitId);
-        } else {
-          await habitsAPI.complete(habitId);
-        }
+        const doneForSelectedDate = isHabitDoneOnDate(
+          habit,
+          state.selectedDate,
+          isSameDay
+        );
+        await onToggleCompletion(habitId, doneForSelectedDate);
       }
 
       if (action === 'delete') {

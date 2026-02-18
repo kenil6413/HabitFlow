@@ -2,6 +2,16 @@ import { authAPI } from './api.js';
 import { storage, redirect } from './utils.js';
 import { escapeHtml } from './client-helpers.js';
 
+const DEV_MODE_STORAGE_KEY = 'habitflow_developer_mode';
+
+export function isDeveloperModeEnabled() {
+  return localStorage.getItem(DEV_MODE_STORAGE_KEY) === 'true';
+}
+
+function setDeveloperModeEnabled(enabled) {
+  localStorage.setItem(DEV_MODE_STORAGE_KEY, String(Boolean(enabled)));
+}
+
 function ensurePasswordModal() {
   const existing = document.getElementById('profilePasswordModal');
   if (existing) return existing;
@@ -51,6 +61,7 @@ function showPasswordMessage(message, type) {
 export function initProfileDropdown({
   profileBtnId = 'profileBtn',
   profileMenuId = 'profileMenu',
+  onDeveloperModeChange = null,
 } = {}) {
   const user = storage.getUser();
   if (!user) {
@@ -62,18 +73,30 @@ export function initProfileDropdown({
   const profileMenu = document.getElementById(profileMenuId);
   if (!profileBtn || !profileMenu) return;
 
-  profileMenu.innerHTML = `
-    <div class="profile-user-card">
-      <div class="profile-user-greeting">Hi, ${escapeHtml(user.username)}</div>
-      <div class="profile-user-subtitle">Keep your streak alive today.</div>
-    </div>
-    <button type="button" class="profile-menu-item" data-profile-action="change-password">
-      Change Password
-    </button>
-    <button type="button" class="profile-menu-item profile-menu-item-danger" data-profile-action="logout">
-      Logout
-    </button>
-  `;
+  function renderMenu() {
+    const devModeEnabled = isDeveloperModeEnabled();
+    profileMenu.innerHTML = `
+      <div class="profile-user-card">
+        <div class="profile-user-greeting">Hi, ${escapeHtml(user.username)}</div>
+        <div class="profile-user-subtitle">Keep your streak alive today.</div>
+      </div>
+      <button
+        type="button"
+        class="profile-menu-item profile-menu-item-toggle ${devModeEnabled ? 'active' : ''}"
+        data-profile-action="toggle-developer-mode"
+      >
+        Developer Mode: ${devModeEnabled ? 'ON' : 'OFF'}
+      </button>
+      <button type="button" class="profile-menu-item" data-profile-action="change-password">
+        Change Password
+      </button>
+      <button type="button" class="profile-menu-item profile-menu-item-danger" data-profile-action="logout">
+        Logout
+      </button>
+    `;
+  }
+
+  renderMenu();
 
   const passwordModal = ensurePasswordModal();
   const passwordForm = passwordModal.querySelector('#profilePasswordForm');
@@ -114,6 +137,16 @@ export function initProfileDropdown({
     if (action === 'logout') {
       storage.clearUser();
       redirect('index.html');
+      return;
+    }
+
+    if (action === 'toggle-developer-mode') {
+      const nextState = !isDeveloperModeEnabled();
+      setDeveloperModeEnabled(nextState);
+      renderMenu();
+      if (typeof onDeveloperModeChange === 'function') {
+        onDeveloperModeChange(nextState);
+      }
       return;
     }
 

@@ -3,11 +3,54 @@ import { getDB } from '../db/connection.js';
 import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
+const MAX_PLAN_FIELD_LENGTH = 120;
+
+function normalizePlanField(value, maxLength = MAX_PLAN_FIELD_LENGTH) {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, maxLength);
+}
+
+function normalizeDateOnly(value) {
+  if (typeof value === 'string') {
+    const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+    if (dateOnlyMatch) {
+      const year = Number(dateOnlyMatch[1]);
+      const month = Number(dateOnlyMatch[2]) - 1;
+      const day = Number(dateOnlyMatch[3]);
+      const parsedLocal = new Date(year, month, day);
+      if (!Number.isNaN(parsedLocal.getTime())) {
+        parsedLocal.setHours(0, 0, 0, 0);
+        return parsedLocal;
+      }
+    }
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function isSameDate(a, b) {
+  const left = new Date(a);
+  const right = new Date(b);
+  left.setHours(0, 0, 0, 0);
+  right.setHours(0, 0, 0, 0);
+  return left.getTime() === right.getTime();
+}
 
 // Create a new habit
 router.post('/', async (req, res) => {
   try {
-    const { userId, name, description } = req.body;
+    const {
+      userId,
+      name,
+      description,
+      cueTime,
+      cueLocation,
+      stackAfter,
+      tinyVersion,
+    } = req.body;
     const userObjectId = toObjectIdOrNull(userId);
 
     // Validation
@@ -27,6 +70,10 @@ router.post('/', async (req, res) => {
       userId: userObjectId,
       name,
       description: description || '',
+      cueTime: normalizePlanField(cueTime, 8),
+      cueLocation: normalizePlanField(cueLocation),
+      stackAfter: normalizePlanField(stackAfter),
+      tinyVersion: normalizePlanField(tinyVersion),
       completions: [],
       currentStreak: 0,
       createdAt: new Date(),
@@ -109,7 +156,8 @@ router.get('/:habitId', async (req, res) => {
 router.put('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
-    const { name, description } = req.body;
+    const { name, description, cueTime, cueLocation, stackAfter, tinyVersion } =
+      req.body;
     const habitObjectId = toObjectIdOrNull(habitId);
 
     if (!habitObjectId) {
@@ -127,6 +175,19 @@ router.put('/:habitId', async (req, res) => {
       name,
       description: description || '',
     };
+
+    if (cueTime !== undefined) {
+      updateData.cueTime = normalizePlanField(cueTime, 8);
+    }
+    if (cueLocation !== undefined) {
+      updateData.cueLocation = normalizePlanField(cueLocation);
+    }
+    if (stackAfter !== undefined) {
+      updateData.stackAfter = normalizePlanField(stackAfter);
+    }
+    if (tinyVersion !== undefined) {
+      updateData.tinyVersion = normalizePlanField(tinyVersion);
+    }
 
     const result = await habitsCollection.updateOne(
       { _id: habitObjectId },
@@ -291,6 +352,73 @@ router.delete('/:habitId/complete/today', async (req, res) => {
     });
   } catch (error) {
     console.error('Undo complete habit error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Set or unset completion for an arbitrary date (developer mode helper)
+router.put('/:habitId/completion', async (req, res) => {
+  try {
+    const { habitId } = req.params;
+    const { date, completed } = req.body;
+    const habitObjectId = toObjectIdOrNull(habitId);
+
+    if (!habitObjectId) {
+      return res.status(400).json({ error: 'Invalid habitId' });
+    }
+
+    const targetDate = normalizeDateOnly(date);
+    if (!targetDate) {
+      return res.status(400).json({ error: 'Valid date is required' });
+    }
+
+    const today = normalizeDateOnly(new Date());
+    if (targetDate.getTime() > today.getTime()) {
+      return res
+        .status(400)
+        .json({ error: 'Cannot change completion for a future date' });
+    }
+
+    const db = getDB();
+    const habitsCollection = db.collection('habits');
+
+    const habit = await habitsCollection.findOne({ _id: habitObjectId });
+    if (!habit) {
+      return res.status(404).json({ error: 'Habit not found' });
+    }
+
+    const currentCompletions = Array.isArray(habit.completions)
+      ? habit.completions
+      : [];
+    const cleanedCompletions = currentCompletions.filter(
+      (entry) => !isSameDate(entry.date, targetDate)
+    );
+
+    const shouldBeCompleted = Boolean(completed);
+    if (shouldBeCompleted) {
+      cleanedCompletions.push({ date: targetDate, completed: true });
+    }
+
+    const newStreak = calculateStreak(cleanedCompletions);
+
+    await habitsCollection.updateOne(
+      { _id: habitObjectId },
+      {
+        $set: {
+          completions: cleanedCompletions,
+          currentStreak: newStreak,
+        },
+      }
+    );
+
+    res.status(200).json({
+      message: shouldBeCompleted
+        ? 'Habit marked complete for selected date'
+        : 'Habit marked incomplete for selected date',
+      currentStreak: newStreak,
+    });
+  } catch (error) {
+    console.error('Set completion by date error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

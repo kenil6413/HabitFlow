@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HabitFlow - Friends</title>
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem('habitflow_wallpaper_url');
+          if (!saved) return;
+          document.documentElement.style.setProperty(
+            '--app-wallpaper',
+            `url('${saved}')`
+          );
+        } catch {}
+      })();
+    </script>
     <link rel="stylesheet" href="css/common.css" />
     <link rel="stylesheet" href="css/friends.css" />
   </head>

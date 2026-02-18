@@ -5,6 +5,7 @@ const FALLBACK_WALLPAPER = '/img/wp13694694-ultrawide-minimalist-wallpapers.jpg'
 
 function setWallpaperCss(url) {
   const safeUrl = url || FALLBACK_WALLPAPER;
+  document.documentElement.style.setProperty('--app-wallpaper', `url('${safeUrl}')`);
   document.body.style.setProperty('--app-wallpaper', `url('${safeUrl}')`);
 }
 

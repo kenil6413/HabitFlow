@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HabitFlow - Home</title>
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem('habitflow_wallpaper_url');
+          if (!saved) return;
+          document.documentElement.style.setProperty(
+            '--app-wallpaper',
+            `url('${saved}')`
+          );
+        } catch {}
+      })();
+    </script>
     <link rel="stylesheet" href="css/common.css" />
     <link rel="stylesheet" href="css/home.css" />
   </head>
@@ -72,6 +84,19 @@
           <h2 class="today-title">TODAY</h2>
           <p class="today-progress" id="todayProgress">0 of 0 habits completed</p>
           <ul class="today-habit-list" id="todayHabitList"></ul>
+          <section
+            class="never-miss-card"
+            id="neverMissCard"
+            aria-live="polite"
+            aria-label="Never miss twice reminder"
+            aria-hidden="true"
+          >
+            <p class="never-miss-kicker">Never Miss Twice</p>
+            <p class="never-miss-title">
+              Bounce back today with <strong id="neverMissHabit">one small rep</strong>.
+            </p>
+            <p class="never-miss-text" id="neverMissText"></p>
+          </section>
         </section>
 
         <article class="calendar-widget" aria-label="Monthly calendar">

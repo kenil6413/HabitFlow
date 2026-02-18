@@ -3,7 +3,6 @@
 .home-page {
   --text: #f8fafc;
   --text-dim: rgba(241, 245, 249, 0.84);
-  --app-wallpaper: url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
 
   min-height: 100dvh;
   margin: 0;
@@ -13,7 +12,7 @@
   background-color: #020617;
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.42) 100%),
-    var(--app-wallpaper);
+    var(--app-wallpaper, url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg'));
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -437,6 +436,73 @@
 .home-cta:focus-visible {
   background: #ffffff;
   transform: translateY(-1px);
+}
+
+.never-miss-card {
+  margin-top: 0;
+  padding: 0 10px;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(5px);
+  box-shadow: none;
+  text-align: left;
+  transition:
+    max-height 0.36s ease,
+    opacity 0.24s ease,
+    transform 0.28s ease,
+    margin-top 0.28s ease,
+    padding 0.28s ease,
+    border-color 0.28s ease,
+    background-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.never-miss-card.is-visible {
+  margin-top: 8px;
+  padding: 8px 10px;
+  max-height: 120px;
+  opacity: 1;
+  transform: translateY(0);
+  border-color: rgba(251, 191, 36, 0.2);
+  background: rgba(15, 23, 42, 0.32);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.14);
+}
+
+.never-miss-kicker {
+  margin: 0 0 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.9);
+}
+
+.never-miss-title {
+  margin: 0;
+  color: rgba(248, 250, 252, 0.95);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.never-miss-text {
+  margin: 3px 0 0;
+  color: rgba(226, 232, 240, 0.84);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.never-miss-card.never-miss-card-success {
+  border-color: rgba(16, 185, 129, 0.44);
+  background: rgba(6, 78, 59, 0.34);
+}
+
+.never-miss-card.never-miss-card-success .never-miss-kicker {
+  color: rgba(110, 231, 183, 0.96);
 }
 
 .quote-strip {

@@ -577,12 +577,11 @@
 
 /* Theme sync with Home + Dashboard */
 .friends-page {
-  --app-wallpaper: url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg');
   min-height: 100svh;
   color: #f8fafc;
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.34) 0%, rgba(2, 6, 23, 0.52) 100%),
-    var(--app-wallpaper);
+    var(--app-wallpaper, url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg'));
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
