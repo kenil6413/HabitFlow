@@ -8,6 +8,88 @@ export function isHabitDoneOnDate(habit, date, isSameDay) {
   );
 }
 
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function frequencyLabel(frequency) {
+  if (!Array.isArray(frequency) || !frequency.length) return '';
+  if (frequency.length === 7) return 'Every day';
+  const names = [...frequency].sort((a, b) => a - b).map((d) => DAY_NAMES[d]);
+  return `${names.join(', ')} (${frequency.length}x/week)`;
+}
+
+function frequencySummaryText(selected) {
+  if (!selected.size) return 'No days selected — habit will show every day';
+  if (selected.size === 7) return 'Every day — 7x per week';
+  const names = [...selected].sort((a, b) => a - b).map((d) => DAY_NAMES[d]);
+  return `${names.join(', ')} — ${selected.size}x per week`;
+}
+
+function renderDayPicker(selectedDays = []) {
+  const selected = new Set(selectedDays);
+  const days = DAY_NAMES.map(
+    (name, i) => `
+    <button type="button" class="day-btn${selected.has(i) ? ' selected' : ''}" data-day="${i}">${name}</button>
+  `
+  ).join('');
+
+  return `
+    <div class="freq-wrap" id="freqWrap">
+      <div class="freq-label">FREQUENCY — Which days?</div>
+      <div class="day-shortcuts">
+        <button type="button" class="day-shortcut" data-preset="every">Every day</button>
+        <button type="button" class="day-shortcut" data-preset="weekdays">Weekdays</button>
+        <button type="button" class="day-shortcut" data-preset="weekends">Weekends</button>
+        <button type="button" class="day-shortcut" data-preset="none">Clear</button>
+      </div>
+      <div class="day-picker" id="dayPicker">${days}</div>
+      <div class="freq-summary" id="freqSummary">${frequencySummaryText(selected)}</div>
+    </div>
+  `;
+}
+
+function bindDayPicker(container) {
+  const selected = new Set(
+    [...container.querySelectorAll('.day-btn.selected')].map((b) =>
+      Number(b.dataset.day)
+    )
+  );
+
+  function update() {
+    container.querySelector('#freqSummary').textContent =
+      frequencySummaryText(selected);
+  }
+
+  container.querySelectorAll('.day-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const d = Number(btn.dataset.day);
+      if (selected.has(d)) {
+        selected.delete(d);
+        btn.classList.remove('selected');
+      } else {
+        selected.add(d);
+        btn.classList.add('selected');
+      }
+      update();
+    });
+  });
+
+  container.querySelectorAll('.day-shortcut').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      selected.clear();
+      if (preset === 'every') [0, 1, 2, 3, 4, 5, 6].forEach((d) => selected.add(d));
+      if (preset === 'weekdays') [0, 1, 2, 3, 4].forEach((d) => selected.add(d));
+      if (preset === 'weekends') [5, 6].forEach((d) => selected.add(d));
+      container.querySelectorAll('.day-btn').forEach((b) => {
+        b.classList.toggle('selected', selected.has(Number(b.dataset.day)));
+      });
+      update();
+    });
+  });
+
+  return { getSelected: () => [...selected] };
+}
+
 export function renderHabits({
   habits,
   selectedDate,
@@ -28,7 +110,6 @@ export function renderHabits({
 
   function renderPlanMeta(habit, escapeHtmlValue) {
     const chips = [];
-
     if (habit.cueTime) {
       chips.push(`<span class="habit-chip">At ${escapeHtmlValue(to12Hour(habit.cueTime))}</span>`);
     }
@@ -38,8 +119,10 @@ export function renderHabits({
     if (habit.stackAfter) {
       chips.push(`<span class="habit-chip">After ${escapeHtmlValue(habit.stackAfter)}</span>`);
     }
+    if (Array.isArray(habit.frequency) && habit.frequency.length) {
+      chips.push(`<span class="habit-chip">📅 ${frequencyLabel(habit.frequency)}</span>`);
+    }
     if (!chips.length) return '';
-
     return `<div class="habit-plan">${chips.join('')}</div>`;
   }
 
@@ -81,9 +164,7 @@ export function renderHabits({
           <div class="hmain">
             <div class="htop">
               <span class="hname">${escapeHtml(habit.name)}</span>
-              <button class="btn ${actionClass} btn-sm" data-action="complete" ${
-                canEdit ? '' : 'disabled'
-              }>
+              <button class="btn ${actionClass} btn-sm" data-action="complete" ${canEdit ? '' : 'disabled'}>
                 ${actionLabel}
               </button>
             </div>
@@ -125,6 +206,12 @@ export function bindHabitEvents({
   const stackAfterInput = document.getElementById('hStackAfterIn');
   const tinyVersionInput = document.getElementById('hTinyVersionIn');
 
+  // Inject day picker into add form after tinyVersionInput
+  const freqContainer = document.createElement('div');
+  freqContainer.innerHTML = renderDayPicker();
+  tinyVersionInput.parentNode.insertBefore(freqContainer, tinyVersionInput.nextSibling);
+  let dayPickerCtrl = bindDayPicker(freqContainer);
+
   function resetAddForm() {
     nameInput.value = '';
     descInput.value = '';
@@ -132,6 +219,8 @@ export function bindHabitEvents({
     cueLocationInput.value = '';
     stackAfterInput.value = '';
     tinyVersionInput.value = '';
+    freqContainer.innerHTML = renderDayPicker();
+    dayPickerCtrl = bindDayPicker(freqContainer);
   }
 
   editToggle.addEventListener('click', () => {
@@ -159,6 +248,7 @@ export function bindHabitEvents({
       cueLocation: cueLocationInput.value.trim(),
       stackAfter: stackAfterInput.value.trim(),
       tinyVersion: tinyVersionInput.value.trim(),
+      frequency: dayPickerCtrl.getSelected(),
     };
 
     if (!name) return;
@@ -189,7 +279,7 @@ export function bindHabitEvents({
     try {
       if (action === 'complete') {
         if (!canEditSelectedDate()) {
-          alert('Enable Developer Mode from profile to edit past-day completions.');
+          alert('You can only complete habits for today.');
           return;
         }
         const doneForSelectedDate = isHabitDoneOnDate(

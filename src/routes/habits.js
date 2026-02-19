@@ -39,6 +39,11 @@ function isSameDate(a, b) {
   return left.getTime() === right.getTime();
 }
 
+function normalizeFrequency(value) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((d) => typeof d === 'number' && d >= 0 && d <= 6);
+}
+
 // Create a new habit
 router.post('/', async (req, res) => {
   try {
@@ -50,10 +55,10 @@ router.post('/', async (req, res) => {
       cueLocation,
       stackAfter,
       tinyVersion,
+      frequency,
     } = req.body;
     const userObjectId = toObjectIdOrNull(userId);
 
-    // Validation
     if (!userId || !name) {
       return res.status(400).json({ error: 'userId and name are required' });
     }
@@ -65,7 +70,6 @@ router.post('/', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    // Create habit
     const newHabit = {
       userId: userObjectId,
       name,
@@ -74,6 +78,7 @@ router.post('/', async (req, res) => {
       cueLocation: normalizePlanField(cueLocation),
       stackAfter: normalizePlanField(stackAfter),
       tinyVersion: normalizePlanField(tinyVersion),
+      frequency: normalizeFrequency(frequency),
       completions: [],
       currentStreak: 0,
       createdAt: new Date(),
@@ -134,9 +139,7 @@ router.get('/:habitId', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    const habit = await habitsCollection.findOne({
-      _id: habitObjectId,
-    });
+    const habit = await habitsCollection.findOne({ _id: habitObjectId });
 
     if (!habit) {
       return res.status(404).json({ error: 'Habit not found' });
@@ -156,8 +159,15 @@ router.get('/:habitId', async (req, res) => {
 router.put('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
-    const { name, description, cueTime, cueLocation, stackAfter, tinyVersion } =
-      req.body;
+    const {
+      name,
+      description,
+      cueTime,
+      cueLocation,
+      stackAfter,
+      tinyVersion,
+      frequency,
+    } = req.body;
     const habitObjectId = toObjectIdOrNull(habitId);
 
     if (!habitObjectId) {
@@ -176,18 +186,11 @@ router.put('/:habitId', async (req, res) => {
       description: description || '',
     };
 
-    if (cueTime !== undefined) {
-      updateData.cueTime = normalizePlanField(cueTime, 8);
-    }
-    if (cueLocation !== undefined) {
-      updateData.cueLocation = normalizePlanField(cueLocation);
-    }
-    if (stackAfter !== undefined) {
-      updateData.stackAfter = normalizePlanField(stackAfter);
-    }
-    if (tinyVersion !== undefined) {
-      updateData.tinyVersion = normalizePlanField(tinyVersion);
-    }
+    if (cueTime !== undefined) updateData.cueTime = normalizePlanField(cueTime, 8);
+    if (cueLocation !== undefined) updateData.cueLocation = normalizePlanField(cueLocation);
+    if (stackAfter !== undefined) updateData.stackAfter = normalizePlanField(stackAfter);
+    if (tinyVersion !== undefined) updateData.tinyVersion = normalizePlanField(tinyVersion);
+    if (frequency !== undefined) updateData.frequency = normalizeFrequency(frequency);
 
     const result = await habitsCollection.updateOne(
       { _id: habitObjectId },
@@ -198,9 +201,7 @@ router.put('/:habitId', async (req, res) => {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    res.status(200).json({
-      message: 'Habit updated successfully',
-    });
+    res.status(200).json({ message: 'Habit updated successfully' });
   } catch (error) {
     console.error('Update habit error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -220,17 +221,13 @@ router.delete('/:habitId', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    const result = await habitsCollection.deleteOne({
-      _id: habitObjectId,
-    });
+    const result = await habitsCollection.deleteOne({ _id: habitObjectId });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    res.status(200).json({
-      message: 'Habit deleted successfully',
-    });
+    res.status(200).json({ message: 'Habit deleted successfully' });
   } catch (error) {
     console.error('Delete habit error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -250,20 +247,14 @@ router.post('/:habitId/complete', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    // Get today's date at midnight
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Find the habit
-    const habit = await habitsCollection.findOne({
-      _id: habitObjectId,
-    });
-
+    const habit = await habitsCollection.findOne({ _id: habitObjectId });
     if (!habit) {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    // Check if already completed today
     const alreadyCompleted = habit.completions.some((completion) => {
       const completionDate = new Date(completion.date);
       completionDate.setHours(0, 0, 0, 0);
@@ -274,13 +265,7 @@ router.post('/:habitId/complete', async (req, res) => {
       return res.status(400).json({ error: 'Habit already completed today' });
     }
 
-    // Add completion
-    const newCompletion = {
-      date: today,
-      completed: true,
-    };
-
-    // Calculate new streak
+    const newCompletion = { date: today, completed: true };
     const newStreak = calculateStreak([...habit.completions, newCompletion]);
 
     await habitsCollection.updateOne(
@@ -329,21 +314,14 @@ router.delete('/:habitId/complete/today', async (req, res) => {
     });
 
     if (filteredCompletions.length === (habit.completions || []).length) {
-      return res
-        .status(400)
-        .json({ error: 'Habit is not marked complete for today' });
+      return res.status(400).json({ error: 'Habit is not marked complete for today' });
     }
 
     const newStreak = calculateStreak(filteredCompletions);
 
     await habitsCollection.updateOne(
       { _id: habitObjectId },
-      {
-        $set: {
-          completions: filteredCompletions,
-          currentStreak: newStreak,
-        },
-      }
+      { $set: { completions: filteredCompletions, currentStreak: newStreak } }
     );
 
     res.status(200).json({
@@ -356,7 +334,7 @@ router.delete('/:habitId/complete/today', async (req, res) => {
   }
 });
 
-// Set or unset completion for an arbitrary date (developer mode helper)
+// Set or unset completion for an arbitrary date
 router.put('/:habitId/completion', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -374,9 +352,7 @@ router.put('/:habitId/completion', async (req, res) => {
 
     const today = normalizeDateOnly(new Date());
     if (targetDate.getTime() > today.getTime()) {
-      return res
-        .status(400)
-        .json({ error: 'Cannot change completion for a future date' });
+      return res.status(400).json({ error: 'Cannot change completion for a future date' });
     }
 
     const db = getDB();
@@ -387,9 +363,7 @@ router.put('/:habitId/completion', async (req, res) => {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    const currentCompletions = Array.isArray(habit.completions)
-      ? habit.completions
-      : [];
+    const currentCompletions = Array.isArray(habit.completions) ? habit.completions : [];
     const cleanedCompletions = currentCompletions.filter(
       (entry) => !isSameDate(entry.date, targetDate)
     );
@@ -403,12 +377,7 @@ router.put('/:habitId/completion', async (req, res) => {
 
     await habitsCollection.updateOne(
       { _id: habitObjectId },
-      {
-        $set: {
-          completions: cleanedCompletions,
-          currentStreak: newStreak,
-        },
-      }
+      { $set: { completions: cleanedCompletions, currentStreak: newStreak } }
     );
 
     res.status(200).json({
@@ -423,11 +392,9 @@ router.put('/:habitId/completion', async (req, res) => {
   }
 });
 
-// Helper function to calculate streak
 function calculateStreak(completions) {
   if (completions.length === 0) return 0;
 
-  // Sort completions by date (newest first)
   const sortedCompletions = completions
     .map((c) => new Date(c.date))
     .sort((a, b) => b - a);

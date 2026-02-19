@@ -52,6 +52,22 @@ const state = {
 
 const todayKey = () => toDateKey(new Date());
 
+// Returns 0=Mon ... 6=Sun to match the frequency array convention
+function getTodayDayIndex() {
+  const jsDay = new Date().getDay(); // 0=Sun, 1=Mon ... 6=Sat
+  return jsDay === 0 ? 6 : jsDay - 1; // convert to Mon=0 ... Sun=6
+}
+
+// Filter habits scheduled for today based on frequency
+function getHabitsForToday(habits) {
+  const todayIdx = getTodayDayIndex();
+  return habits.filter((habit) => {
+    // No frequency set means show every day
+    if (!Array.isArray(habit.frequency) || habit.frequency.length === 0) return true;
+    return habit.frequency.includes(todayIdx);
+  });
+}
+
 function setNeverMissVisible(visible) {
   elements.neverMissCard.classList.toggle('is-visible', visible);
   elements.neverMissCard.setAttribute('aria-hidden', visible ? 'false' : 'true');
@@ -63,11 +79,9 @@ function computeCompletedMap(habits) {
   habits.forEach((habit) => {
     (habit.completions || []).forEach((completion) => {
       const key = toDateKey(completion.date);
-
       if (!state.completedByDate.has(key)) {
         state.completedByDate.set(key, new Set());
       }
-
       state.completedByDate.get(key).add(String(habit._id));
     });
   });
@@ -94,18 +108,28 @@ const calendar = initCalendar({
 });
 
 function renderTodayHabits(habits) {
+  const todayHabits = getHabitsForToday(habits);
   const completedToday = state.completedByDate.get(todayKey()) || new Set();
 
-  if (!habits.length) {
-    elements.todayHabitList.innerHTML =
-      '<li class="today-empty">No habits yet. Add your first habit from Dashboard.</li>';
-    elements.todayProgress.textContent = '0 of 0 habits completed';
+  // No habits scheduled for today
+  if (!todayHabits.length) {
+    const hasAnyHabits = habits.length > 0;
+    elements.todayHabitList.innerHTML = `
+      <li class="today-empty">
+        ${hasAnyHabits
+          ? '🎉 No habits scheduled for today — enjoy your rest day!'
+          : 'No habits yet. Add your first habit from Dashboard.'}
+      </li>
+    `;
+    elements.todayProgress.textContent = hasAnyHabits
+      ? 'Rest day — nothing scheduled today'
+      : '0 of 0 habits completed';
     return;
   }
 
   let doneCount = 0;
 
-  elements.todayHabitList.innerHTML = habits
+  elements.todayHabitList.innerHTML = todayHabits
     .map((habit) => {
       const habitId = String(habit._id);
       const isDone = completedToday.has(habitId);
@@ -122,7 +146,12 @@ function renderTodayHabits(habits) {
     })
     .join('');
 
-  elements.todayProgress.textContent = `${doneCount} of ${habits.length} habits completed`;
+  // All done for today
+  if (doneCount === todayHabits.length) {
+    elements.todayProgress.textContent = `🎉 All ${todayHabits.length} habits done — great work today!`;
+  } else {
+    elements.todayProgress.textContent = `${doneCount} of ${todayHabits.length} habits completed`;
+  }
 }
 
 function renderNeverMissTwice(habits) {
@@ -213,8 +242,15 @@ async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
       renderNeverMissTwice(state.habits);
     }
 
+    const todayHabits = getHabitsForToday(state.habits);
     const done = state.completedByDate.get(key).size;
-    elements.todayProgress.textContent = `${done} of ${state.totalHabits} habits completed`;
+
+    if (done === todayHabits.length && todayHabits.length > 0) {
+      elements.todayProgress.textContent = `🎉 All ${todayHabits.length} habits done — great work today!`;
+    } else {
+      elements.todayProgress.textContent = `${done} of ${todayHabits.length} habits completed`;
+    }
+
     calendar.render();
   } catch {
     checkboxEl.checked = !shouldBeDone;
@@ -229,23 +265,14 @@ function bindHabitCheckEvents() {
   elements.todayHabitList.addEventListener('change', (event) => {
     const target = event.target;
 
-    if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') {
-      return;
-    }
-
-    if (target.disabled) {
-      return;
-    }
+    if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') return;
+    if (target.disabled) return;
 
     const habitItem = target.closest('.today-habit');
-    if (!habitItem) {
-      return;
-    }
+    if (!habitItem) return;
 
     const { habitId } = habitItem.dataset;
-    if (!habitId) {
-      return;
-    }
+    if (!habitId) return;
 
     setHabitDoneState(habitId, target.checked, target);
   });

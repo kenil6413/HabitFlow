@@ -513,3 +513,91 @@ body::after {
 }
 
 .hidden { display: none !important; }
+
+/* ── Time input clock icon ── */
+input[type='time']::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.6);
+  cursor: pointer;
+}
+
+/* ── Frequency day picker ── */
+.freq-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.freq-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.6);
+  letter-spacing: 0.06em;
+}
+
+.day-shortcuts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-shortcut {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.22);
+  background: transparent;
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.day-shortcut:hover {
+  background: rgba(248, 250, 252, 0.1);
+  color: #ffffff;
+  border-color: rgba(248, 250, 252, 0.4);
+}
+
+.day-picker {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.day-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(226, 232, 240, 0.25);
+  background: rgba(15, 23, 42, 0.5);
+  color: rgba(241, 245, 249, 0.6);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.day-btn:hover {
+  border-color: rgba(248, 250, 252, 0.5);
+  color: #ffffff;
+  background: rgba(248, 250, 252, 0.1);
+}
+
+.day-btn.selected {
+  background: rgba(248, 250, 252, 0.92);
+  color: #0f172a;
+  border-color: rgba(248, 250, 252, 0.92);
+  font-weight: 800;
+}
+
+.freq-summary {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.55);
+  font-style: italic;
+  min-height: 18px;
+}
