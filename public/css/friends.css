@@ -845,3 +845,11 @@
   background: #d1fae5;
   color: #065f46;
 }
+
+/* ── Profile button: orange hover + glow matching dashboard ── */
+.profile-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.22);
+}
