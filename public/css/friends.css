@@ -853,3 +853,41 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.22);
 }
+
+/* ── Pin button: top-right of card ── */
+.friends-page .friend-card {
+  position: relative;
+}
+
+.btn-pin-friend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 4px;
+}
+
+.btn-pin-friend .pin-icon { font-size: 18px; line-height: 1; }
+.btn-pin-friend .pin-txt {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.btn-unpinned { color: rgba(241, 245, 249, 0.4); }
+.btn-unpinned:hover { color: #fbbf24; }
+
+.btn-pinned { color: #fbbf24; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5)); }
+.btn-pinned:hover { color: rgba(241, 245, 249, 0.6); filter: none; }
+
+.friends-page .friend-card.friend-card-pinned {
+  border-left: 4px solid rgba(245, 158, 11, 0.9);
+  background: rgba(15, 23, 42, 0.78);
+}

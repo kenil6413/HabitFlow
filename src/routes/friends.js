@@ -136,6 +136,57 @@ router.get('/:userId/habits/:friendId', async (req, res) => {
   }
 });
 
+// Pin or unpin a friend
+router.put('/:userId/pin/:friendId', async (req, res) => {
+  try {
+    const { userId, friendId } = req.params;
+    const { pinned } = req.body;
+    const userObjectId = toObjectIdOrNull(userId);
+    const friendObjectId = toObjectIdOrNull(friendId);
+
+    if (!userObjectId || !friendObjectId) {
+      return res.status(400).json({ error: 'Invalid userId or friendId' });
+    }
+
+    if (typeof pinned !== 'boolean') {
+      return res.status(400).json({ error: 'pinned (boolean) is required' });
+    }
+
+    const db = getDB();
+    const usersCollection = db.collection('users');
+
+    const user = await usersCollection.findOne({ _id: userObjectId });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isFriend = user.friends.some(
+      (fId) => fId.toString() === friendId
+    );
+    if (!isFriend) {
+      return res.status(403).json({ error: 'This user is not your friend' });
+    }
+
+    if (pinned) {
+      await usersCollection.updateOne(
+        { _id: userObjectId },
+        { $addToSet: { pinnedFriends: friendObjectId } }
+      );
+    } else {
+      await usersCollection.updateOne(
+        { _id: userObjectId },
+        { $pull: { pinnedFriends: friendObjectId } }
+      );
+    }
+
+    res.status(200).json({
+      message: `Friend ${pinned ? 'pinned' : 'unpinned'} successfully`,
+      pinned,
+    });
+  } catch (error) {
+    console.error('Pin friend error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all friends for a user
 router.get('/:userId', async (req, res) => {
   try {
@@ -149,36 +200,35 @@ router.get('/:userId', async (req, res) => {
     const db = getDB();
     const usersCollection = db.collection('users');
 
-    // Get current user with friends
     const user = await usersCollection.findOne({ _id: userObjectId });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (user.friends.length === 0) {
-      return res.status(200).json({
-        message: 'No friends yet',
-        count: 0,
-        friends: [],
-      });
+      return res.status(200).json({ message: 'No friends yet', count: 0, friends: [] });
     }
 
-    // Get friend details
+    const pinnedIds = (user.pinnedFriends || []).map((id) => id.toString());
+
     const friends = await usersCollection
       .find({ _id: { $in: user.friends } })
-      .project({ password: 0 }) // Don't return passwords
+      .project({ password: 0 })
       .toArray();
+
+    const mappedFriends = friends.map((friend) => ({
+      userId: friend._id,
+      username: friend.username,
+      shareCode: friend.shareCode,
+      createdAt: friend.createdAt,
+      pinned: pinnedIds.includes(friend._id.toString()),
+    }));
+
+    // Pinned friends first
+    mappedFriends.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
     res.status(200).json({
       message: 'Friends retrieved successfully',
       count: friends.length,
-      friends: friends.map((friend) => ({
-        userId: friend._id,
-        username: friend.username,
-        shareCode: friend.shareCode,
-        createdAt: friend.createdAt,
-      })),
+      friends: mappedFriends,
     });
   } catch (error) {
     console.error('Get friends error:', error);

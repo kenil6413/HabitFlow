@@ -117,6 +117,12 @@ const friendsAPI = {
 
   getFriendHabits: (userId, friendId) =>
     apiCall(`/friends/${userId}/habits/${friendId}`),
+
+  pinFriend: (userId, friendId, pinned) =>
+  apiCall(`/friends/${userId}/pin/${friendId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ pinned }),
+  }),
 };
 
 // Journal API

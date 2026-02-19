@@ -10,9 +10,22 @@ export function renderFriendsCards(friends) {
     .map((friend) => {
       const initial = friend.username.charAt(0).toUpperCase();
       const friendId = String(friend.userId || friend._id || '');
+      const pinned = friend.pinned === true;
 
       return `
-        <div class="friend-card">
+        <div class="friend-card ${pinned ? 'friend-card-pinned' : ''}">
+          <button
+            type="button"
+            class="btn-pin-friend ${pinned ? 'btn-pinned' : 'btn-unpinned'}"
+            data-friend-id="${escapeHtml(friendId)}"
+            data-friend-name="${escapeHtml(friend.username)}"
+            data-pinned="${pinned}"
+            title="${pinned ? 'Unpin' : 'Pin to top'}"
+          >
+            <span class="pin-icon">${pinned ? '📌' : '📍'}</span>
+            <span class="pin-txt">${pinned ? 'PINNED' : 'PIN'}</span>
+          </button>
+
           <div class="friend-header">
             <div class="friend-avatar">${initial}</div>
             <div class="friend-info">

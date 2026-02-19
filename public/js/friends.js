@@ -106,6 +106,19 @@ function setHabitFilter(filterKey) {
   renderModalHabitsList();
 }
 
+async function togglePinFriend(friendId, friendName, isPinned) {
+  try {
+    await friendsAPI.pinFriend(String(user.userId), String(friendId), !isPinned);
+    ui.showAlert(
+      isPinned ? `${friendName} unpinned` : `${friendName} pinned to top!`,
+      'success'
+    );
+    loadFriends();
+  } catch (error) {
+    ui.showAlert(error.message || 'Unable to update pin', 'error');
+  }
+}
+
 function bindEvents() {
   elements.copyCodeBtn.addEventListener('click', () => {
     navigator.clipboard
@@ -191,6 +204,15 @@ function bindFriendCardEvents() {
       removeFriend(friendId, friendName);
     });
   });
+
+  elements.friendsGrid.querySelectorAll('.btn-pin-friend').forEach((button) => {
+    button.addEventListener('click', async (event) => {
+      const { friendId, friendName } = event.currentTarget.dataset;
+      const isPinned = event.currentTarget.dataset.pinned === 'true';
+      await togglePinFriend(friendId, friendName, isPinned);
+    });
+  });
+
 }
 
 function applyFriendFilter() {
