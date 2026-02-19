@@ -8,6 +8,17 @@ if (storage.isLoggedIn()) {
 
 const loginForm = document.getElementById('loginForm');
 const alertContainer = document.getElementById('alertContainer');
+const authCard = document.getElementById('authCard');
+
+function shakeCard() {
+  authCard.classList.remove('shake');
+  // Force reflow so animation replays if already shaking
+  void authCard.offsetWidth;
+  authCard.classList.add('shake');
+  authCard.addEventListener('animationend', () => {
+    authCard.classList.remove('shake');
+  }, { once: true });
+}
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -37,5 +48,6 @@ loginForm.addEventListener('submit', async (event) => {
   } catch (error) {
     setAlert(alertContainer, 'error', error.message || 'Login failed');
     setButtonState(submitBtn, { disabled: false, text: 'Login' });
+    shakeCard();
   }
 });

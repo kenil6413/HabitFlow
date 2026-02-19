@@ -187,8 +187,13 @@ export function renderHeatmap({ habits, toDateKey }) {
       date.setDate(start.getDate() + w * 7 + d);
 
       const inYear = date.getFullYear() === year;
-      const level = inYear ? levelFromCount(addTotals(date)) : 0;
+      const count = inYear ? addTotals(date) : 0;
+      const level = inYear ? levelFromCount(count) : 0;
       const cell = makeCell(level, null, null, '3px');
+      if (inYear) {
+        const dateLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        cell.title = count === 1 ? `${dateLabel}: 1 habit` : `${dateLabel}: ${count} habits`;
+      }
       if (!inYear) cell.style.opacity = '0.08';
       yearGrid.appendChild(cell);
     }

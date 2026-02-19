@@ -52,10 +52,57 @@ function ensurePasswordModal() {
   return modal;
 }
 
+function ensureDeleteModal() {
+  const existing = document.getElementById('profileDeleteModal');
+  if (existing) return existing;
+
+  const modal = document.createElement('div');
+  modal.id = 'profileDeleteModal';
+  modal.className = 'modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.innerHTML = `
+    <div class="modal-content profile-delete-modal-content">
+      <div class="modal-header">
+        <h2>Delete Account</h2>
+        <button type="button" class="close-modal" data-close-delete-modal aria-label="Close">&times;</button>
+      </div>
+      <div class="delete-modal-warning">
+        ⚠️ This action is <strong>permanent</strong> and cannot be undone.
+        All your habits, streaks, and journal entries will be deleted.
+      </div>
+      <div id="profileDeleteAlert"></div>
+      <form id="profileDeleteForm">
+        <div class="form-group">
+          <label for="profileDeletePassword">Enter your password to confirm</label>
+          <input type="password" id="profileDeletePassword" placeholder="Your current password" required />
+        </div>
+        <div class="delete-modal-actions">
+          <button type="button" class="btn btn-secondary" data-close-delete-modal>Cancel</button>
+          <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete My Account</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  return modal;
+}
+
 function showPasswordMessage(message, type) {
   const alert = document.getElementById('profilePasswordAlert');
   if (!alert) return;
-  alert.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
+  alert.innerHTML = message
+    ? `<div class="alert alert-${type}">${escapeHtml(message)}</div>`
+    : '';
+}
+
+function showDeleteMessage(message, type) {
+  const alert = document.getElementById('profileDeleteAlert');
+  if (!alert) return;
+  alert.innerHTML = message
+    ? `<div class="alert alert-${type}">${escapeHtml(message)}</div>`
+    : '';
 }
 
 export function initProfileDropdown({
@@ -90,6 +137,9 @@ export function initProfileDropdown({
       <button type="button" class="profile-menu-item" data-profile-action="change-password">
         Change Password
       </button>
+      <button type="button" class="profile-menu-item profile-menu-item-danger" data-profile-action="delete-account">
+        Delete Account
+      </button>
       <button type="button" class="profile-menu-item profile-menu-item-danger" data-profile-action="logout">
         Logout
       </button>
@@ -98,6 +148,7 @@ export function initProfileDropdown({
 
   renderMenu();
 
+  // ── Password modal ──
   const passwordModal = ensurePasswordModal();
   const passwordForm = passwordModal.querySelector('#profilePasswordForm');
   const submitBtn = passwordModal.querySelector('button[type="submit"]');
@@ -107,8 +158,6 @@ export function initProfileDropdown({
     document.body.style.overflow = '';
     passwordForm?.reset();
     showPasswordMessage('', 'info');
-    const alert = document.getElementById('profilePasswordAlert');
-    if (alert) alert.innerHTML = '';
   }
 
   function openPasswordModal() {
@@ -116,19 +165,38 @@ export function initProfileDropdown({
     document.body.style.overflow = 'hidden';
   }
 
-  profileBtn.addEventListener('click', (event) => {
-    event.stopPropagation();
+  // ── Delete modal ──
+  const deleteModal = ensureDeleteModal();
+  const deleteForm = deleteModal.querySelector('#profileDeleteForm');
+  const confirmDeleteBtn = deleteModal.querySelector('#confirmDeleteBtn');
+
+  function closeDeleteModal() {
+    deleteModal.classList.remove('active');
+    document.body.style.overflow = '';
+    deleteForm?.reset();
+    showDeleteMessage('', 'info');
+  }
+
+  function openDeleteModal() {
+    deleteModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // ── Profile button toggle ──
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     profileMenu.classList.toggle('active');
   });
 
-  document.addEventListener('click', (event) => {
-    if (!profileBtn.contains(event.target) && !profileMenu.contains(event.target)) {
+  document.addEventListener('click', (e) => {
+    if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
       profileMenu.classList.remove('active');
     }
   });
 
-  profileMenu.addEventListener('click', (event) => {
-    const actionBtn = event.target.closest('[data-profile-action]');
+  // ── Menu actions ──
+  profileMenu.addEventListener('click', (e) => {
+    const actionBtn = e.target.closest('[data-profile-action]');
     if (!actionBtn) return;
 
     const action = actionBtn.getAttribute('data-profile-action');
@@ -152,26 +220,44 @@ export function initProfileDropdown({
 
     if (action === 'change-password') {
       openPasswordModal();
+      return;
+    }
+
+    if (action === 'delete-account') {
+      openDeleteModal();
     }
   });
 
-  passwordModal.addEventListener('click', (event) => {
+  // ── Password modal events ──
+  passwordModal.addEventListener('click', (e) => {
     if (
-      event.target === passwordModal ||
-      event.target.closest('[data-close-password-modal]')
+      e.target === passwordModal ||
+      e.target.closest('[data-close-password-modal]')
     ) {
       closePasswordModal();
     }
   });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && passwordModal.classList.contains('active')) {
-      closePasswordModal();
+  // ── Delete modal events ──
+  deleteModal.addEventListener('click', (e) => {
+    if (
+      e.target === deleteModal ||
+      e.target.closest('[data-close-delete-modal]')
+    ) {
+      closeDeleteModal();
     }
   });
 
-  passwordForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (passwordModal.classList.contains('active')) closePasswordModal();
+      if (deleteModal.classList.contains('active')) closeDeleteModal();
+    }
+  });
+
+  // ── Password form submit ──
+  passwordForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
     const currentPassword = document.getElementById('profileCurrentPassword')?.value;
     const newPassword = document.getElementById('profileNewPassword')?.value;
@@ -181,40 +267,54 @@ export function initProfileDropdown({
       showPasswordMessage('Please fill all fields.', 'error');
       return;
     }
-
     if (newPassword !== confirmPassword) {
       showPasswordMessage('New passwords do not match.', 'error');
       return;
     }
-
     if (newPassword.length < 6) {
       showPasswordMessage('New password must be at least 6 characters.', 'error');
       return;
     }
-
     if (newPassword === currentPassword) {
-      showPasswordMessage(
-        'New password must be different from current password.',
-        'error'
-      );
+      showPasswordMessage('New password must be different from current password.', 'error');
       return;
     }
 
     try {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Updating...';
-
       await authAPI.changePassword(user.userId, currentPassword, newPassword);
       showPasswordMessage('Password updated successfully.', 'success');
-
-      setTimeout(() => {
-        closePasswordModal();
-      }, 1200);
+      setTimeout(() => closePasswordModal(), 1200);
     } catch (error) {
       showPasswordMessage(error.message || 'Unable to change password.', 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Update Password';
+    }
+  });
+
+  // ── Delete form submit ──
+  deleteForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const password = document.getElementById('profileDeletePassword')?.value;
+    if (!password) {
+      showDeleteMessage('Please enter your password.', 'error');
+      return;
+    }
+
+    try {
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = 'Deleting...';
+      await authAPI.deleteAccount(user.userId, password);
+      storage.clearUser();
+      redirect('index.html');
+    } catch (error) {
+      showDeleteMessage(error.message || 'Unable to delete account.', 'error');
+    } finally {
+      confirmDeleteBtn.disabled = false;
+      confirmDeleteBtn.textContent = 'Delete My Account';
     }
   });
 }

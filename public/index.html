@@ -8,8 +8,24 @@
     <link rel="stylesheet" href="css/auth.css" />
   </head>
   <body class="auth-page">
+
+    <!-- Particles canvas -->
+    <canvas id="auth-particles"></canvas>
+
+    <!-- Pulsing glow -->
+    <div class="auth-glow"></div>
+
     <div class="auth-container">
-      <div class="auth-card">
+      <div class="auth-card" id="authCard">
+
+        <!-- Journal/habit icon strip -->
+        <div class="auth-theme-strip">
+          <span title="Track habits">📋</span>
+          <span title="Build streaks">🔥</span>
+          <span title="Journal">✍️</span>
+          <span class="star-icon" title="Stay consistent">✦</span>
+        </div>
+
         <div class="auth-header">
           <h1>HabitFlow</h1>
           <p>1% better every day. Small habits, remarkable results.</p>
@@ -46,6 +62,49 @@
         </div>
       </div>
     </div>
+
+    <script>
+      // Floating particles
+      const canvas = document.getElementById('auth-particles');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles;
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+
+      function initParticles() {
+        particles = Array.from({ length: 38 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.6 + 0.4,
+          dx: (Math.random() - 0.5) * 0.35,
+          dy: (Math.random() - 0.5) * 0.35,
+          o: Math.random() * 0.65 + 0.3,
+        }));
+      }
+
+      function drawParticles() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${p.o})`;
+          ctx.fill();
+          p.x += p.dx;
+          p.y += p.dy;
+          if (p.x < 0 || p.x > W) p.dx *= -1;
+          if (p.y < 0 || p.y > H) p.dy *= -1;
+        });
+        requestAnimationFrame(drawParticles);
+      }
+
+      resize();
+      initParticles();
+      drawParticles();
+      window.addEventListener('resize', () => { resize(); initParticles(); });
+    </script>
 
     <script type="module" src="./js/auth/login.js"></script>
   </body>

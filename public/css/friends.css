@@ -783,3 +783,65 @@
     padding-bottom: 28px;
   }
 }
+
+/* ── Change Password modal: force light-theme readability on friends page ── */
+#profilePasswordModal .modal-content {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+#profilePasswordModal .modal-header h2 {
+  color: #1e293b;
+  -webkit-text-fill-color: #1e293b;
+}
+
+#profilePasswordModal .close-modal {
+  color: #64748b;
+}
+
+#profilePasswordModal .close-modal:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+#profilePasswordModal label {
+  color: #1e293b;
+}
+
+#profilePasswordModal input[type='password'] {
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+}
+
+#profilePasswordModal input[type='password']:focus {
+  border-color: #c2410c;
+  box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.15);
+}
+
+#profilePasswordModal input[type='password']::placeholder {
+  color: #94a3b8;
+}
+
+#profilePasswordModal .btn-primary {
+  background: #c2410c;
+  color: #ffffff;
+  border-color: #c2410c;
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: none;
+}
+
+#profilePasswordModal .btn-primary:hover {
+  background: #9a3412;
+  border-color: #9a3412;
+}
+
+#profilePasswordModal .alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+#profilePasswordModal .alert-success {
+  background: #d1fae5;
+  color: #065f46;
+}

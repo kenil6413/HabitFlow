@@ -47,6 +47,12 @@ const authAPI = {
       method: 'DELETE',
     }),
 
+  deleteAccount: (userId, password) =>
+    apiCall(`/auth/user/${userId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    }),
+
   changePassword: (userId, currentPassword, newPassword) =>
     apiCall(`/auth/user/${userId}/password`, {
       method: 'PUT',

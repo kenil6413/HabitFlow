@@ -728,3 +728,97 @@ body::after {
 }
 
 .hidden { display:none !important; }
+
+/* ── Change Password modal: force light-theme readability on dashboard ── */
+#profilePasswordModal .modal-content {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+#profilePasswordModal .modal-header h2 {
+  color: #1e293b;
+  -webkit-text-fill-color: #1e293b; /* overrides the gradient text-fill set on h2 */
+}
+
+#profilePasswordModal .close-modal {
+  color: #64748b;
+}
+
+#profilePasswordModal .close-modal:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+#profilePasswordModal label {
+  color: #1e293b;
+}
+
+#profilePasswordModal input[type='password'] {
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+}
+
+#profilePasswordModal input[type='password']:focus {
+  border-color: #c2410c;
+  box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.15);
+}
+
+#profilePasswordModal input[type='password']::placeholder {
+  color: #94a3b8;
+}
+
+#profilePasswordModal .btn-primary {
+  background: #c2410c;
+  color: #ffffff;
+  border-color: #c2410c;
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: none;
+}
+
+#profilePasswordModal .btn-primary:hover {
+  background: #9a3412;
+  border-color: #9a3412;
+}
+
+#profilePasswordModal .alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+#profilePasswordModal .alert-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* ── Photo remove button: more visible on hover ── */
+.premove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  bottom: auto;
+  width: 22px;
+  height: 22px;
+  background: rgba(220, 38, 38, 0.85);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  padding: 0;
+}
+
+.pwrap:hover .premove {
+  opacity: 1;
+}
+
+.premove:hover {
+  background: #b91c1c;
+  transform: scale(1.15);
+}
