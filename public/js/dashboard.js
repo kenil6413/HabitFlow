@@ -1,9 +1,6 @@
 import { habitsAPI, journalAPI } from './api.js';
 import { requireAuth, storage, redirect } from './utils.js';
-import {
-  initProfileDropdown,
-  isDeveloperModeEnabled,
-} from './profile-menu.js';
+import { initProfileDropdown } from './profile-menu.js';
 import {
   escapeHtml,
   startOfDay,
@@ -35,7 +32,6 @@ const state = {
   editMode: false,
   selectedDate: startOfDay(new Date()),
   photos: [],
-  developerMode: false,
 };
 
 function habitIdResolver(habit) {
@@ -54,12 +50,7 @@ function renderHabitsList() {
 }
 
 function canEditSelectedDate() {
-  if (isSameDay(state.selectedDate, new Date())) return true;
-  if (!state.developerMode) return false;
-
-  const selected = startOfDay(state.selectedDate);
-  const today = startOfDay(new Date());
-  return selected.getTime() <= today.getTime();
+  return isSameDay(state.selectedDate, new Date());
 }
 
 async function toggleCompletionForSelectedDate(habitId, doneForSelectedDate) {
@@ -148,14 +139,7 @@ async function init() {
     return;
   }
 
-  state.developerMode = isDeveloperModeEnabled();
-
-  initProfileDropdown({
-    onDeveloperModeChange: (enabled) => {
-      state.developerMode = enabled;
-      renderHabitsList();
-    },
-  });
+  initProfileDropdown();
 
   bindHabitEvents({
     state,

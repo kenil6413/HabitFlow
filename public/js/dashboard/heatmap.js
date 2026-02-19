@@ -24,14 +24,12 @@ function makeCell(level, width, height, radius) {
 
 function getAllCompletionsMap(habits, toDateKey) {
   const map = new Map();
-
   habits.forEach((habit) => {
     (habit.completions || []).forEach((completion) => {
       const key = toDateKey(completion.date);
       map.set(key, (map.get(key) || 0) + 1);
     });
   });
-
   return map;
 }
 
@@ -107,32 +105,25 @@ export function renderWeekRow({ habits, dayNames, startOfDay, isSameDay, toDateK
     .join('');
 }
 
-export function renderHeatmap({ habits, toDateKey }) {
+let _year = new Date().getFullYear();
+let _habits = [];
+let _toDateKey = null;
+
+function drawGrid(year) {
   const wrap = document.getElementById('hmWrap');
-  const label = document.getElementById('hmRangeLabel');
   const summary = document.getElementById('hmSummary');
-  const completionMap = getAllCompletionsMap(habits, toDateKey);
+  const completionMap = getAllCompletionsMap(_habits, _toDateKey);
+
+  // Update label buttons
+  document.getElementById('hmYearLabel').textContent = `Year ${year}`;
+  document.getElementById('hmNextYear').disabled = year >= new Date().getFullYear();
 
   wrap.innerHTML = '';
-  wrap.className = '';
-  wrap.style.overflowX = '';
+  wrap.style.overflowX = 'hidden';
   wrap.style.marginBottom = '16px';
 
   let activeDays = 0;
   let completionsInRange = 0;
-
-  const addTotals = (date) => {
-    const count = getCompletionsCountForDate(completionMap, date, toDateKey);
-    if (count > 0) {
-      activeDays += 1;
-      completionsInRange += count;
-    }
-    return count;
-  };
-
-  const year = new Date().getFullYear();
-  label.textContent = `Year ${year}`;
-  wrap.style.overflowX = 'hidden';
 
   const yearWrap = document.createElement('div');
   yearWrap.className = 'year-wrap';
@@ -173,9 +164,7 @@ export function renderHeatmap({ habits, toDateKey }) {
 
     const monthLabel = document.createElement('span');
     if (weekStart.getFullYear() === year && weekStart.getMonth() !== lastMonth) {
-      monthLabel.textContent = weekStart.toLocaleDateString('en-US', {
-        month: 'short',
-      });
+      monthLabel.textContent = weekStart.toLocaleDateString('en-US', { month: 'short' });
       lastMonth = weekStart.getMonth();
     } else {
       monthLabel.textContent = '';
@@ -187,12 +176,18 @@ export function renderHeatmap({ habits, toDateKey }) {
       date.setDate(start.getDate() + w * 7 + d);
 
       const inYear = date.getFullYear() === year;
-      const count = inYear ? addTotals(date) : 0;
+      const count = inYear
+        ? (() => {
+            const c = getCompletionsCountForDate(completionMap, date, _toDateKey);
+            if (c > 0) { activeDays += 1; completionsInRange += c; }
+            return c;
+          })()
+        : 0;
       const level = inYear ? levelFromCount(count) : 0;
       const cell = makeCell(level, null, null, '3px');
       if (inYear) {
-        const dateLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        cell.title = count === 1 ? `${dateLabel}: 1 habit` : `${dateLabel}: ${count} habits`;
+        const dl = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        cell.title = count === 1 ? `${dl}: 1 habit` : `${dl}: ${count} habits`;
       }
       if (!inYear) cell.style.opacity = '0.08';
       yearGrid.appendChild(cell);
@@ -205,4 +200,34 @@ export function renderHeatmap({ habits, toDateKey }) {
   wrap.appendChild(yearWrap);
 
   summary.textContent = `${completionsInRange} completions across ${activeDays} active days`;
+}
+
+export function renderHeatmap({ habits, toDateKey }) {
+  _habits = habits;
+  _toDateKey = toDateKey;
+  _year = new Date().getFullYear();
+
+  // Build nav buttons once into hmRangeLabel
+  const label = document.getElementById('hmRangeLabel');
+  label.innerHTML = `
+    <button id="hmPrevYear" class="hm-nav-btn">&#8249;</button>
+    <span id="hmYearLabel" style="font-size:14px;font-weight:700;color:var(--accent);font-family:'Lora',Georgia,serif;min-width:80px;text-align:center;">Year ${_year}</span>
+    <button id="hmNextYear" class="hm-nav-btn" disabled>&#8250;</button>
+  `;
+  label.style.display = 'flex';
+  label.style.alignItems = 'center';
+  label.style.gap = '6px';
+
+  document.getElementById('hmPrevYear').addEventListener('click', () => {
+    _year -= 1;
+    drawGrid(_year);
+  });
+
+  document.getElementById('hmNextYear').addEventListener('click', () => {
+    if (_year >= new Date().getFullYear()) return;
+    _year += 1;
+    drawGrid(_year);
+  });
+
+  drawGrid(_year);
 }
