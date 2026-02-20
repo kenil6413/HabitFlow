@@ -3,6 +3,11 @@
 .home-page {
   --text: #f8fafc;
   --text-dim: rgba(241, 245, 249, 0.84);
+  --app-shell-max: 1300px;
+  --home-shell-max: 1620px;
+  --panel-bg: rgba(15, 23, 42, 0.28);
+  --panel-border: rgba(241, 245, 249, 0.18);
+  --panel-blur: blur(3px);
 
   min-height: 100dvh;
   margin: 0;
@@ -12,92 +17,50 @@
   background-color: #020617;
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.42) 100%),
-    var(--app-wallpaper, url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg'));
+    var(
+      --app-wallpaper,
+      url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg')
+    );
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   transition: background-image 0.35s ease;
 }
 
-.home-page .app-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  margin-bottom: 0;
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.34) 0%, rgba(2, 6, 23, 0) 100%);
+.home-page .app-bar.app-bar-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(2, 6, 23, 0.28) 0%,
+    rgba(2, 6, 23, 0) 100%
+  );
   border-bottom: none;
   box-shadow: none;
-}
-
-.home-page .app-bar .container {
-  max-width: 1300px;
-}
-
-.home-page .app-bar-brand {
-  color: #ffffff;
-  font-size: clamp(1.55rem, 2.2vw, 2rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
-}
-
-.home-page .app-bar-nav {
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(241, 245, 249, 0.26);
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(6px);
-}
-
-.home-page .app-bar-nav .nav-link {
-  color: rgba(241, 245, 249, 0.9);
-  padding: 8px 10px;
-  background: transparent;
-}
-
-.home-page .app-bar-nav .nav-link:hover,
-.home-page .app-bar-nav .nav-link.active {
-  color: #ffffff;
-  background: transparent;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-}
-
-.home-page .profile-dropdown {
-  order: 4;
-  margin-left: 0;
-  padding-left: 0;
-  border-left: none;
-}
-
-.home-page .profile-btn {
-  background: rgba(255, 255, 255, 0.94);
-  color: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(4px);
 }
 
 .home-main {
-  min-height: calc(100dvh - 104px);
-  max-width: 1300px;
-  padding-top: 104px;
-  padding-bottom: 20px;
+  min-height: calc(100dvh - 92px);
+  max-width: var(--home-shell-max);
+  width: min(100%, var(--home-shell-max));
+  padding-top: clamp(20px, 3vh, 32px);
+  padding-bottom: clamp(18px, 3vh, 36px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 18px;
+  gap: clamp(16px, 2vh, 26px);
 }
 
 .widgets-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px) minmax(0, 1fr);
-  gap: clamp(30px, 5vw, 80px);
+  grid-template-columns: minmax(280px, 1.15fr) minmax(300px, 0.9fr) minmax(
+      300px,
+      1.15fr
+    );
+  gap: clamp(24px, 3.2vw, 70px);
   align-items: center;
 }
 
-.clock-widget,
+.pomodoro-widget,
 .calendar-widget {
   background: transparent;
   border: none;
@@ -107,7 +70,8 @@
 
 .pomodoro-widget {
   justify-self: start;
-  width: min(100%, 390px);
+  width: clamp(300px, 30vw, 460px);
+  max-width: 100%;
   padding: 6px;
   animation: floatClock 8s ease-in-out infinite;
   margin-top: 20px;
@@ -151,8 +115,15 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle closest-side, rgba(15, 23, 42, 0.55) 79%, transparent 80%),
-    conic-gradient(rgba(248, 250, 252, 0.92) var(--progress-deg), rgba(248, 250, 252, 0.22) 0deg);
+    radial-gradient(
+      circle closest-side,
+      rgba(15, 23, 42, 0.55) 79%,
+      transparent 80%
+    ),
+    conic-gradient(
+      rgba(248, 250, 252, 0.92) var(--progress-deg),
+      rgba(248, 250, 252, 0.22) 0deg
+    );
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.34);
   position: relative;
 }
@@ -223,7 +194,8 @@
 
 .calendar-widget {
   justify-self: end;
-  width: min(100%, 440px);
+  width: clamp(320px, 31vw, 500px);
+  max-width: 100%;
   padding: 8px 4px;
   animation: floatCalendar 9s ease-in-out infinite;
 }
@@ -291,7 +263,9 @@
   font-size: 0.95rem;
   background: transparent;
   text-shadow: 0 2px 8px rgba(2, 6, 23, 0.45);
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
   position: relative;
   padding-bottom: 7px;
 }
@@ -326,6 +300,11 @@
 
 .calendar-day.dot-none:not(.today)::after {
   background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.calendar-day.dot-none:not(.today) {
+  background: rgba(239, 68, 68, 0.14);
 }
 
 .calendar-day.dot-partial:not(.today)::after {
@@ -364,17 +343,18 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: min(34vh, 260px);
+  max-height: min(38vh, 320px);
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.today-habit {
+.today-habit,
+.today-empty {
   padding: 8px 12px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.28);
-  border: 1px solid rgba(241, 245, 249, 0.18);
-  backdrop-filter: blur(3px);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: var(--panel-blur);
 }
 
 .today-habit-label {
@@ -408,9 +388,6 @@
 
 .today-empty {
   padding: 12px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.28);
-  border: 1px solid rgba(241, 245, 249, 0.18);
   color: rgba(226, 232, 240, 0.92);
 }
 
@@ -509,14 +486,16 @@
   align-self: center;
   justify-self: center;
   text-align: center;
-  max-width: min(100%, 980px);
-  width: fit-content;
+  max-width: min(100%, 76ch);
+  width: 100%;
   padding: 0;
   background: transparent;
   border: none;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
   margin-top: 44px;
   margin-bottom: 8px;
 }
@@ -559,7 +538,9 @@
   cursor: pointer;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 22px rgba(2, 6, 23, 0.3);
-  transition: transform 0.18s ease, background-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .wallpaper-next-btn:hover,
@@ -595,7 +576,7 @@
 @media (max-width: 1024px) {
   .home-main {
     min-height: auto;
-    padding-top: 106px;
+    padding-top: clamp(14px, 2.2vh, 24px);
     gap: 18px;
     justify-content: flex-start;
   }
@@ -618,24 +599,25 @@
   }
 }
 
+@media (min-width: 1500px) {
+  .home-page {
+    --home-shell-max: 1780px;
+  }
+
+  .widgets-row {
+    grid-template-columns: minmax(340px, 1.2fr) minmax(340px, 0.8fr) minmax(
+        340px,
+        1.2fr
+      );
+    gap: clamp(36px, 3.5vw, 96px);
+  }
+
+  .today-title {
+    font-size: clamp(2.25rem, 2.8vw, 3.3rem);
+  }
+}
+
 @media (max-width: 640px) {
-  .home-page .app-bar .container {
-    gap: 10px;
-  }
-
-  .home-page .app-bar-nav {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 0;
-    border: none;
-    background: transparent;
-    backdrop-filter: none;
-  }
-
-  .home-page .app-bar-nav::before {
-    display: none;
-  }
-
   .calendar-weekdays > div {
     font-size: 0.74rem;
   }

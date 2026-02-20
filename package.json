@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed:rubric": "node scripts/seed-rubric-data.js"
   },
   "keywords": [
     "habits",

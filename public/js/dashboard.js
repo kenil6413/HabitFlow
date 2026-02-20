@@ -1,6 +1,6 @@
 import { habitsAPI, journalAPI } from './api.js';
-import { requireAuth, storage, redirect } from './utils.js';
-import { initProfileDropdown } from './profile-menu.js';
+import { storage, redirect } from './utils.js';
+import { initAuthenticatedPage } from './page-bootstrap.js';
 import {
   escapeHtml,
   startOfDay,
@@ -20,8 +20,10 @@ import {
   refreshHabits,
   bindHabitEvents,
 } from './dashboard/habits.js';
-import { bindMoodPicker, createJournalController } from './dashboard/journal.js';
-import { applyStoredWallpaper } from './wallpaper.js';
+import {
+  bindMoodPicker,
+  createJournalController,
+} from './dashboard/journal.js';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -127,10 +129,7 @@ const journal = createJournalController({
 });
 
 async function init() {
-  requireAuth();
-  applyStoredWallpaper();
-
-  state.user = storage.getUser();
+  state.user = initAuthenticatedPage({ activeNav: 'dashboard' });
   state.userId = parseMongoId(state.user?.userId);
 
   if (!state.userId) {
@@ -138,8 +137,6 @@ async function init() {
     redirect('index.html');
     return;
   }
-
-  initProfileDropdown();
 
   bindHabitEvents({
     state,

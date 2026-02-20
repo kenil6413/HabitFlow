@@ -1,21 +1,12 @@
 import { habitsAPI } from './api.js';
-import { storage, redirect, requireAuth } from './utils.js';
-import { initProfileDropdown } from './profile-menu.js';
+import { initAuthenticatedPage } from './page-bootstrap.js';
 import { escapeHtml, toDateKey } from './client-helpers.js';
 import { initPomodoro } from './home/pomodoro.js';
 import { initCalendar } from './home/calendar.js';
 import { initQuotes } from './home/quotes.js';
 import { initWallpaperSwitcher } from './home/wallpaper.js';
 
-requireAuth();
-
-const user = storage.getUser();
-if (!user) {
-  redirect('index.html');
-  throw new Error('User session missing');
-}
-
-initProfileDropdown();
+const user = initAuthenticatedPage({ activeNav: 'home' });
 
 const elements = {
   todayHabitList: document.getElementById('todayHabitList'),
@@ -53,24 +44,56 @@ const state = {
 const todayKey = () => toDateKey(new Date());
 
 // Returns 0=Mon ... 6=Sun to match the frequency array convention
-function getTodayDayIndex() {
-  const jsDay = new Date().getDay(); // 0=Sun, 1=Mon ... 6=Sat
+function getDayIndexFromDate(dateObj) {
+  const jsDay = dateObj.getDay(); // 0=Sun, 1=Mon ... 6=Sat
   return jsDay === 0 ? 6 : jsDay - 1; // convert to Mon=0 ... Sun=6
+}
+
+function getHabitsForDate(habits, dateObj) {
+  const dayIdx = getDayIndexFromDate(dateObj);
+  return habits.filter((habit) => {
+    // No frequency set means habit is expected every day
+    if (!Array.isArray(habit.frequency) || habit.frequency.length === 0)
+      return true;
+
+    // Accept both numeric and legacy string day values (e.g. "0"..."6")
+    return habit.frequency.some((value) => Number(value) === dayIdx);
+  });
 }
 
 // Filter habits scheduled for today based on frequency
 function getHabitsForToday(habits) {
-  const todayIdx = getTodayDayIndex();
-  return habits.filter((habit) => {
-    // No frequency set means show every day
-    if (!Array.isArray(habit.frequency) || habit.frequency.length === 0) return true;
-    return habit.frequency.includes(todayIdx);
-  });
+  return getHabitsForDate(habits, new Date());
+}
+
+function getCompletedSetForDate(dateKey) {
+  return state.completedByDate.get(dateKey) || new Set();
+}
+
+function getCompletedCountForHabits(habits, completedSet) {
+  return habits.reduce((count, habit) => {
+    return completedSet.has(String(habit._id)) ? count + 1 : count;
+  }, 0);
+}
+
+function updateTodayProgress(todayHabits) {
+  const completedToday = getCompletedSetForDate(todayKey());
+  const doneCount = getCompletedCountForHabits(todayHabits, completedToday);
+
+  if (doneCount === todayHabits.length && todayHabits.length > 0) {
+    elements.todayProgress.textContent = `🎉 All ${todayHabits.length} habits done — great work today!`;
+    return;
+  }
+
+  elements.todayProgress.textContent = `${doneCount} of ${todayHabits.length} habits completed`;
 }
 
 function setNeverMissVisible(visible) {
   elements.neverMissCard.classList.toggle('is-visible', visible);
-  elements.neverMissCard.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  elements.neverMissCard.setAttribute(
+    'aria-hidden',
+    visible ? 'false' : 'true'
+  );
 }
 
 function computeCompletedMap(habits) {
@@ -88,14 +111,17 @@ function computeCompletedMap(habits) {
 }
 
 function getDayStatus(dateObj, today) {
-  if (state.totalHabits === 0) return null;
   if (dateObj.getTime() > today.getTime()) return null;
 
+  const scheduledHabits = getHabitsForDate(state.habits, dateObj);
+  if (!scheduledHabits.length) return null;
+
   const key = toDateKey(dateObj);
-  const doneCount = (state.completedByDate.get(key) || new Set()).size;
+  const completedSet = getCompletedSetForDate(key);
+  const doneCount = getCompletedCountForHabits(scheduledHabits, completedSet);
 
   if (doneCount === 0) return 'none';
-  if (doneCount === state.totalHabits) return 'full';
+  if (doneCount === scheduledHabits.length) return 'full';
   return 'partial';
 }
 
@@ -109,16 +135,18 @@ const calendar = initCalendar({
 
 function renderTodayHabits(habits) {
   const todayHabits = getHabitsForToday(habits);
-  const completedToday = state.completedByDate.get(todayKey()) || new Set();
+  const completedToday = getCompletedSetForDate(todayKey());
 
   // No habits scheduled for today
   if (!todayHabits.length) {
     const hasAnyHabits = habits.length > 0;
     elements.todayHabitList.innerHTML = `
       <li class="today-empty">
-        ${hasAnyHabits
-          ? '🎉 No habits scheduled for today — enjoy your rest day!'
-          : 'No habits yet. Add your first habit from Dashboard.'}
+        ${
+          hasAnyHabits
+            ? '🎉 No habits scheduled for today — enjoy your rest day!'
+            : 'No habits yet. Add your first habit from Dashboard.'
+        }
       </li>
     `;
     elements.todayProgress.textContent = hasAnyHabits
@@ -127,13 +155,10 @@ function renderTodayHabits(habits) {
     return;
   }
 
-  let doneCount = 0;
-
   elements.todayHabitList.innerHTML = todayHabits
     .map((habit) => {
       const habitId = String(habit._id);
       const isDone = completedToday.has(habitId);
-      if (isDone) doneCount += 1;
 
       return `
         <li class="today-habit ${isDone ? 'done' : ''}" data-habit-id="${habitId}">
@@ -146,12 +171,7 @@ function renderTodayHabits(habits) {
     })
     .join('');
 
-  // All done for today
-  if (doneCount === todayHabits.length) {
-    elements.todayProgress.textContent = `🎉 All ${todayHabits.length} habits done — great work today!`;
-  } else {
-    elements.todayProgress.textContent = `${doneCount} of ${todayHabits.length} habits completed`;
-  }
+  updateTodayProgress(todayHabits);
 }
 
 function renderNeverMissTwice(habits) {
@@ -163,7 +183,8 @@ function renderNeverMissTwice(habits) {
   const todayDone = state.completedByDate.get(todayKey()) || new Set();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayDone = state.completedByDate.get(toDateKey(yesterday)) || new Set();
+  const yesterdayDone =
+    state.completedByDate.get(toDateKey(yesterday)) || new Set();
 
   const rescueHabits = habits
     .filter((habit) => {
@@ -242,14 +263,7 @@ async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
       renderNeverMissTwice(state.habits);
     }
 
-    const todayHabits = getHabitsForToday(state.habits);
-    const done = state.completedByDate.get(key).size;
-
-    if (done === todayHabits.length && todayHabits.length > 0) {
-      elements.todayProgress.textContent = `🎉 All ${todayHabits.length} habits done — great work today!`;
-    } else {
-      elements.todayProgress.textContent = `${done} of ${todayHabits.length} habits completed`;
-    }
+    updateTodayProgress(getHabitsForToday(state.habits));
 
     calendar.render();
   } catch {
@@ -265,7 +279,8 @@ function bindHabitCheckEvents() {
   elements.todayHabitList.addEventListener('change', (event) => {
     const target = event.target;
 
-    if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') return;
+    if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox')
+      return;
     if (target.disabled) return;
 
     const habitItem = target.closest('.today-habit');

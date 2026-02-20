@@ -4,13 +4,11 @@ import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
-// Create or update a journal entry for a specific date
 router.post('/', async (req, res) => {
   try {
     const { userId, date, content, images } = req.body;
     const userObjectId = toObjectIdOrNull(userId);
 
-    // Validation
     if (!userId || !date) {
       return res.status(400).json({ error: 'userId and date are required' });
     }
@@ -22,11 +20,9 @@ router.post('/', async (req, res) => {
     const db = getDB();
     const journalCollection = db.collection('journal');
 
-    // Parse date and set to midnight
     const entryDate = new Date(date);
     entryDate.setHours(0, 0, 0, 0);
 
-    // Check if entry already exists
     const existingEntry = await journalCollection.findOne({
       userId: userObjectId,
       date: entryDate,
@@ -41,7 +37,6 @@ router.post('/', async (req, res) => {
     };
 
     if (existingEntry) {
-      // Update existing entry
       await journalCollection.updateOne(
         { _id: existingEntry._id },
         { $set: journalEntry }
@@ -51,7 +46,6 @@ router.post('/', async (req, res) => {
         entry: { ...journalEntry, _id: existingEntry._id },
       });
     } else {
-      // Create new entry
       journalEntry.createdAt = new Date();
       const result = await journalCollection.insertOne(journalEntry);
       res.status(201).json({
@@ -65,7 +59,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get journal entry for a specific date
 router.get('/user/:userId/date/:date', async (req, res) => {
   try {
     const { userId, date } = req.params;
@@ -103,7 +96,6 @@ router.get('/user/:userId/date/:date', async (req, res) => {
   }
 });
 
-// Get all journal entries for a user
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -132,7 +124,6 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-// Delete a journal entry
 router.delete('/:entryId', async (req, res) => {
   try {
     const { entryId } = req.params;

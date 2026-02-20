@@ -42,11 +42,6 @@ const authAPI = {
       body: JSON.stringify({ username, password }),
     }),
 
-  deleteUser: (userId) =>
-    apiCall(`/auth/user/${userId}`, {
-      method: 'DELETE',
-    }),
-
   deleteAccount: (userId, password) =>
     apiCall(`/auth/user/${userId}`, {
       method: 'DELETE',
@@ -119,10 +114,10 @@ const friendsAPI = {
     apiCall(`/friends/${userId}/habits/${friendId}`),
 
   pinFriend: (userId, friendId, pinned) =>
-  apiCall(`/friends/${userId}/pin/${friendId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ pinned }),
-  }),
+    apiCall(`/friends/${userId}/pin/${friendId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ pinned }),
+    }),
 };
 
 // Journal API

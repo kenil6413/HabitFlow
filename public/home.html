@@ -4,85 +4,71 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HabitFlow - Home</title>
-    <script>
-      (() => {
-        try {
-          const saved = localStorage.getItem('habitflow_wallpaper_url');
-          if (!saved) return;
-          document.documentElement.style.setProperty(
-            '--app-wallpaper',
-            `url('${saved}')`
-          );
-        } catch {}
-      })();
-    </script>
+    <script src="./js/wallpaper-preload.js"></script>
     <link rel="stylesheet" href="css/common.css" />
     <link rel="stylesheet" href="css/home.css" />
   </head>
   <body class="home-page">
-    <header class="app-bar">
-      <div class="container">
-        <a href="home.html" class="app-bar-brand">HabitFlow</a>
-        <nav class="app-bar-nav">
-          <a href="dashboard.html" class="nav-link">Dashboard</a>
-          <a href="friends.html" class="nav-link">Friends</a>
-          <div class="profile-dropdown">
-            <button
-              type="button"
-              class="profile-btn"
-              id="profileBtn"
-              aria-label="Open profile menu"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </button>
-            <div class="profile-menu" id="profileMenu"></div>
-          </div>
-        </nav>
-      </div>
-    </header>
+    <div id="appBarMount"></div>
 
     <main class="home-main container" aria-label="Home overview">
       <section class="widgets-row" aria-label="Clock and calendar widgets">
         <article class="pomodoro-widget" aria-label="Pomodoro timer">
           <div class="pomodoro-shell">
             <div class="pomodoro-mode">
-              <button type="button" class="mode-btn active" id="focusModeBtn">FOCUS</button>
-              <button type="button" class="mode-btn" id="breakModeBtn">BREAK</button>
+              <button type="button" class="mode-btn active" id="focusModeBtn">
+                FOCUS
+              </button>
+              <button type="button" class="mode-btn" id="breakModeBtn">
+                BREAK
+              </button>
             </div>
-            <div class="pomodoro-ring" id="pomodoroRing" style="--progress-deg: 0deg">
+            <div
+              class="pomodoro-ring"
+              id="pomodoroRing"
+              style="--progress-deg: 0deg"
+            >
               <p class="pomodoro-time" id="pomodoroTime">25:00</p>
             </div>
             <div class="pomodoro-duration">
-              <button type="button" class="duration-btn" id="durationDecreaseBtn" aria-label="Decrease timer">
+              <button
+                type="button"
+                class="duration-btn"
+                id="durationDecreaseBtn"
+                aria-label="Decrease timer"
+              >
                 -
               </button>
               <span class="duration-value" id="durationValue">25 min</span>
-              <button type="button" class="duration-btn" id="durationIncreaseBtn" aria-label="Increase timer">
+              <button
+                type="button"
+                class="duration-btn"
+                id="durationIncreaseBtn"
+                aria-label="Increase timer"
+              >
                 +
               </button>
             </div>
             <div class="pomodoro-actions">
-              <button type="button" class="pomodoro-btn pomodoro-start" id="pomodoroStartBtn">
+              <button
+                type="button"
+                class="pomodoro-btn pomodoro-start"
+                id="pomodoroStartBtn"
+              >
                 Start
               </button>
-              <button type="button" class="pomodoro-btn" id="pomodoroResetBtn">Reset</button>
+              <button type="button" class="pomodoro-btn" id="pomodoroResetBtn">
+                Reset
+              </button>
             </div>
           </div>
         </article>
 
         <section class="today-focus" aria-label="Today's habits">
           <h2 class="today-title">TODAY</h2>
-          <p class="today-progress" id="todayProgress">0 of 0 habits completed</p>
+          <p class="today-progress" id="todayProgress">
+            0 of 0 habits completed
+          </p>
           <ul class="today-habit-list" id="todayHabitList"></ul>
           <section
             class="never-miss-card"
@@ -93,7 +79,8 @@
           >
             <p class="never-miss-kicker">Never Miss Twice</p>
             <p class="never-miss-title">
-              Bounce back today with <strong id="neverMissHabit">one small rep</strong>.
+              Bounce back today with
+              <strong id="neverMissHabit">one small rep</strong>.
             </p>
             <p class="never-miss-text" id="neverMissText"></p>
           </section>
@@ -136,7 +123,11 @@
         <a href="dashboard.html" class="btn home-cta">Start Logging</a>
       </div>
 
-      <section class="quote-strip" id="quoteStrip" aria-label="Motivational quote">
+      <section
+        class="quote-strip"
+        id="quoteStrip"
+        aria-label="Motivational quote"
+      >
         <p class="quote-text" id="quoteText"></p>
         <p class="quote-author" id="quoteAuthor"></p>
       </section>

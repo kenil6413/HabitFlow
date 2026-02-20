@@ -8,16 +8,11 @@
     <link rel="stylesheet" href="css/auth.css" />
   </head>
   <body class="auth-page">
-
-    <!-- Particles canvas -->
     <canvas id="auth-particles"></canvas>
-
-    <!-- Pulsing glow -->
     <div class="auth-glow"></div>
 
     <div class="auth-container">
       <div class="auth-card" id="authCard">
-
         <div class="auth-header">
           <h1>HabitFlow</h1>
           <p>Start building the identity of someone who shows up.</p>
@@ -79,49 +74,7 @@
       </div>
     </div>
 
-    <script>
-      // Floating particles
-      const canvas = document.getElementById('auth-particles');
-      const ctx = canvas.getContext('2d');
-      let W, H, particles;
-
-      function resize() {
-        W = canvas.width  = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-      }
-
-      function initParticles() {
-        particles = Array.from({ length: 38 }, () => ({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: Math.random() * 1.6 + 0.4,
-          dx: (Math.random() - 0.5) * 0.35,
-          dy: (Math.random() - 0.5) * 0.35,
-          o: Math.random() * 0.65 + 0.3,
-        }));
-      }
-
-      function drawParticles() {
-        ctx.clearRect(0, 0, W, H);
-        particles.forEach((p) => {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${p.o})`;
-          ctx.fill();
-          p.x += p.dx;
-          p.y += p.dy;
-          if (p.x < 0 || p.x > W) p.dx *= -1;
-          if (p.y < 0 || p.y > H) p.dy *= -1;
-        });
-        requestAnimationFrame(drawParticles);
-      }
-
-      resize();
-      initParticles();
-      drawParticles();
-      window.addEventListener('resize', () => { resize(); initParticles(); });
-    </script>
-
+    <script src="./js/auth/particles.js"></script>
     <script type="module" src="./js/auth/register.js"></script>
   </body>
 </html>

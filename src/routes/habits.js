@@ -44,7 +44,6 @@ function normalizeFrequency(value) {
   return value.filter((d) => typeof d === 'number' && d >= 0 && d <= 6);
 }
 
-// Create a new habit
 router.post('/', async (req, res) => {
   try {
     const {
@@ -97,7 +96,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all habits for a user
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -126,7 +124,6 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-// Get a single habit by ID
 router.get('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -155,7 +152,6 @@ router.get('/:habitId', async (req, res) => {
   }
 });
 
-// Update a habit
 router.put('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -208,7 +204,6 @@ router.put('/:habitId', async (req, res) => {
   }
 });
 
-// Delete a habit
 router.delete('/:habitId', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -234,7 +229,6 @@ router.delete('/:habitId', async (req, res) => {
   }
 });
 
-// Log a habit completion for today
 router.post('/:habitId/complete', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -286,7 +280,6 @@ router.post('/:habitId/complete', async (req, res) => {
   }
 });
 
-// Remove today's completion for a habit
 router.delete('/:habitId/complete/today', async (req, res) => {
   try {
     const { habitId } = req.params;
@@ -334,7 +327,6 @@ router.delete('/:habitId/complete/today', async (req, res) => {
   }
 });
 
-// Set or unset completion for an arbitrary date
 router.put('/:habitId/completion', async (req, res) => {
   try {
     const { habitId } = req.params;
