@@ -128,6 +128,13 @@ const journal = createJournalController({
   renderHabits: renderHabitsList,
 });
 
+function scrollToLoggingSectionIfRequested() {
+  if (window.location.hash !== '#loggingSection') return;
+  const section = document.getElementById('loggingSection');
+  if (!section) return;
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 async function init() {
   state.user = initAuthenticatedPage({ activeNav: 'dashboard' });
   state.userId = parseMongoId(state.user?.userId);
@@ -154,6 +161,7 @@ async function init() {
   try {
     await refreshHabitsAndRender();
     await journal.loadJournalEntry();
+    scrollToLoggingSectionIfRequested();
   } catch (error) {
     console.error('Dashboard load error:', error);
     alert('Unable to load dashboard data. Please refresh.');

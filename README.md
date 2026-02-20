@@ -1,8 +1,9 @@
 # HabitFlow
 
-HabitFlow is a habit tracking web app built for Project 2 using Node.js, Express, MongoDB (native driver), HTML5, CSS, and vanilla JavaScript.
+HabitFlow is a full-stack habit tracking web application built for CS5610 Project 2.  
+It combines a vanilla JavaScript frontend with a Node.js + Express backend and MongoDB (native driver) for storage.
 
-## Author
+## Authors
 
 - Kenil Jitendrakumar Patel
 - Sukanya Sudhir Shete
@@ -15,176 +16,211 @@ HabitFlow is a habit tracking web app built for Project 2 using Node.js, Express
 
 ## Project Objective
 
-Build a practical habit tracker where users can:
+The app helps users build consistency by:
 
-- create and manage habits
-- track daily completions and streaks
-- write daily journal entries
-- visualize consistency with a heatmap/calendar
-- connect with friends for accountability
+- creating and managing habits
+- tracking daily completion and streak behavior
+- writing daily journal entries (with optional image uploads)
+- visualizing progress using calendar/heatmap views
+- adding friends for accountability through share codes
 
-## Screenshot
+## Features
 
-Add final screenshots in `docs/screenshots/` and reference them here.
-
-Example:
-
-```md
-![Dashboard Screenshot](docs/screenshots/dashboard.png)
-![Friends Screenshot](docs/screenshots/friends.png)
-```
+- Auth flow with register/login
+- Habit CRUD with date-based tracking
+- Daily progress calendar with completion states
+- Journal entries with optional image attachments
+- Friends system with mutual add/remove behavior
+- Responsive layout across laptop and external screens
 
 ## Tech Stack
 
 - Node.js + Express
 - MongoDB native driver (`mongodb`)
-- HTML5 + CSS3
-- Vanilla JavaScript modules (client-side rendering)
+- HTML5 + CSS3 (modular CSS files)
+- Vanilla JavaScript modules (client-side rendering only)
 
-## Local Setup
+## Prerequisites
 
-1. Install dependencies:
+- Node.js 18+
+- npm 9+
+- MongoDB Atlas or local MongoDB instance
+
+## Installation
 
 ```bash
+git clone <your-repo-url>
+cd Project-2-HabitFlow
 npm install
 ```
 
-2. Create environment file:
+## Environment Variables
+
+Create `.env` from `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Configure `.env`:
+Set:
 
 ```env
 MONGODB_URI=your_mongodb_connection_string
 PORT=3000
 ```
 
-4. Start the app:
+
+## Run Locally
+
+Start production mode:
 
 ```bash
 npm start
 ```
 
-5. Open `http://localhost:3000`
-
-## Development Commands
+Start development mode:
 
 ```bash
 npm run dev
-npm run lint
-npm run format
 ```
 
-## How to Use
+Open:
 
-1. Register an account on `register.html`.
-2. Log in on `index.html`.
-3. Open Dashboard to add/edit/delete habits.
-4. Mark habits complete daily to build streaks.
-5. Use Friends page to share/add friends using share code.
-6. Use journal and heatmap sections to review progress.
+`http://localhost:3000`
 
-## Rubric Support Commands
+## Page-Wise Usage
 
-Run lint:
+### Register / Login
 
-```bash
-npm run lint
-```
+1. Create a new account on `register.html`.
+2. Log in from `index.html`.
 
-Seed sample data (creates 1000+ records):
+### Dashboard
+
+1. Add habits using the habit form.
+2. Mark habits completed each day.
+3. Edit/delete habits when needed.
+4. Change selected date to review past records.
+
+### Home
+
+1. View daily summary and completion status.
+2. Check calendar dots: red = no habits completed, light green = some habits completed, dark green = all habits completed.
+3. Use timer for focus sessions.
+
+### Journal
+
+1. Pick a date.
+2. Write journal text.
+3. Optionally upload image(s).
+4. Save entry and review later by date.
+
+### Friends
+
+1. Copy your share code.
+2. Add friend by their code.
+3. Search and view friends' shared progress.
+4. Remove friends when needed.
+
+## Quick Demo Flow
+
+1. Register `user_1` and `user_2` (or run seeded data).
+2. Log in as `user_1`.
+3. Create 3 habits and complete at least 1.
+4. Add a journal entry.
+5. Add `user_2` as a friend via share code.
+6. Verify friend data appears on Friends page.
+
+## Seed Data (1000+ Records)
+
+Generate rubric-friendly sample data:
 
 ```bash
 npm run seed:rubric
 ```
 
-Optional seed customization:
+Optional custom seed:
 
 ```bash
 node scripts/seed-rubric-data.js --users=50 --habits-per-user=25 --journals-per-user=6
 ```
 
-Seed with one specific journal image for every entry:
+Seed journal entries with a fixed image:
 
 ```bash
 node scripts/seed-rubric-data.js --journal-image=/journal-images/dog.jpg
 ```
 
-Default seeded users:
+Default seeded credentials:
 
-- username prefix: `user_`
+- username pattern: `user_1`, `user_2`, ...
 - password: `123456`
+
+## Linting and Formatting
+
+```bash
+npm run lint
+npm run format
+```
+
+## Deployment (Render)
+
+This project includes `render.yaml` for deployment setup.
+
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Health Check: `/api/health`
+- Required env var on Render: `MONGODB_URI`
+
+## Screenshots
+
+Project screenshots are available in the `sc/` folder.
+
+### Login
+![Login](docs/screenshots/Screenshot%202026-02-20%20at%204.41.18%E2%80%AFPM.png)
+
+### Home
+![Home](docs/screenshots/Screenshot%202026-02-20%20at%204.41.40%E2%80%AFPM.png)
+
+### Dashboard
+![Dashboard](docs/screenshots/Screenshot%202026-02-20%20at%204.43.38%E2%80%AFPM.png)
+
+### Friends
+![Friends](docs/screenshots/Screenshot%202026-02-20%20at%204.43.49%E2%80%AFPM.png)
 
 ## Project Structure
 
 ```text
 backend/
-  server.js
   db/
-    connection.js
   routes/
-    auth.js
-    habits.js
-    friends.js
-    journal.js
-    assets.js
   utils/
-    helpers.js
-    object-id.js
+  server.js
 
 frontend/
+  css/
+  img/
+  journal-images/
+  js/
   index.html
   register.html
   home.html
   dashboard.html
   friends.html
-  css/
-    auth.css
-    common.css
-    home.css
-    dashboard.css
-    friends.css
-  js/
-    api.js
-    page-bootstrap.js
-    app-shell.js
-    wallpaper-preload.js
-    profile-menu.js
-    utils.js
-    auth/
-      login.js
-      register.js
-      particles.js
-    home/
-      calendar.js
-      pomodoro.js
-      quotes.js
-      wallpaper.js
-    dashboard/
-      habits.js
-      heatmap.js
-      journal.js
-      stats.js
-    friends/
-      render.js
-      ui.js
 
 docs/
-  DESIGN.md
-  RUBRIC_CHECKLIST.md
-  RUBRIC_AUDIT.md
+scripts/
+sc/
+render.yaml
 ```
 
 ## Constraints Compliance
 
-- Uses ES Modules (`import`/`export`) in backend.
-- Does not use Mongoose.
-- Does not use template engines (EJS/Pug/Handlebars/etc).
-- Uses MongoDB native driver directly.
+- Uses ES Modules (`import`/`export`) in backend
+- Uses MongoDB native driver (no Mongoose)
+- No template engines (EJS/Pug/Handlebars/etc)
+- Frontend uses vanilla JavaScript client-side rendering
 
 ## License
 
-MIT (`LICENSE`)
+MIT License (`LICENSE`)
