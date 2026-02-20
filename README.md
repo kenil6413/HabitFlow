@@ -110,7 +110,7 @@ node scripts/seed-rubric-data.js --users=50 --habits-per-user=25 --journals-per-
 Seed with one specific journal image for every entry:
 
 ```bash
-node scripts/seed-rubric-data.js --journal-image=/img/dog.jpg
+node scripts/seed-rubric-data.js --journal-image=/journal-images/dog.jpg
 ```
 
 Default seeded users:
