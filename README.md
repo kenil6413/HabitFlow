@@ -3,6 +3,8 @@
 HabitFlow is a full-stack habit tracking web application built for CS5610 Project 2.  
 It combines a vanilla JavaScript frontend with a Node.js + Express backend and MongoDB (native driver) for storage.
 
+The application, inspired by the principles of 'Atomic Habits' is designed to help users build lasting, meaningful habits through structured tracking, social accountability and daily reflection making the process of behavior change both intentional and enjoyable.
+
 ## Authors
 
 - Kenil Jitendrakumar Patel
