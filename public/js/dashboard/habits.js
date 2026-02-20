@@ -77,8 +77,10 @@ function bindDayPicker(container) {
     btn.addEventListener('click', () => {
       const preset = btn.dataset.preset;
       selected.clear();
-      if (preset === 'every') [0, 1, 2, 3, 4, 5, 6].forEach((d) => selected.add(d));
-      if (preset === 'weekdays') [0, 1, 2, 3, 4].forEach((d) => selected.add(d));
+      if (preset === 'every')
+        [0, 1, 2, 3, 4, 5, 6].forEach((d) => selected.add(d));
+      if (preset === 'weekdays')
+        [0, 1, 2, 3, 4].forEach((d) => selected.add(d));
       if (preset === 'weekends') [5, 6].forEach((d) => selected.add(d));
       container.querySelectorAll('.day-btn').forEach((b) => {
         b.classList.toggle('selected', selected.has(Number(b.dataset.day)));
@@ -111,16 +113,24 @@ export function renderHabits({
   function renderPlanMeta(habit, escapeHtmlValue) {
     const chips = [];
     if (habit.cueTime) {
-      chips.push(`<span class="habit-chip">At ${escapeHtmlValue(to12Hour(habit.cueTime))}</span>`);
+      chips.push(
+        `<span class="habit-chip">At ${escapeHtmlValue(to12Hour(habit.cueTime))}</span>`
+      );
     }
     if (habit.cueLocation) {
-      chips.push(`<span class="habit-chip">In ${escapeHtmlValue(habit.cueLocation)}</span>`);
+      chips.push(
+        `<span class="habit-chip">In ${escapeHtmlValue(habit.cueLocation)}</span>`
+      );
     }
     if (habit.stackAfter) {
-      chips.push(`<span class="habit-chip">After ${escapeHtmlValue(habit.stackAfter)}</span>`);
+      chips.push(
+        `<span class="habit-chip">After ${escapeHtmlValue(habit.stackAfter)}</span>`
+      );
     }
     if (Array.isArray(habit.frequency) && habit.frequency.length) {
-      chips.push(`<span class="habit-chip">📅 ${frequencyLabel(habit.frequency)}</span>`);
+      chips.push(
+        `<span class="habit-chip">📅 ${frequencyLabel(habit.frequency)}</span>`
+      );
     }
     if (!chips.length) return '';
     return `<div class="habit-plan">${chips.join('')}</div>`;
@@ -142,7 +152,11 @@ export function renderHabits({
 
   list.innerHTML = habits
     .map((habit) => {
-      const doneForSelectedDate = isHabitDoneOnDate(habit, selectedDate, isSameDay);
+      const doneForSelectedDate = isHabitDoneOnDate(
+        habit,
+        selectedDate,
+        isSameDay
+      );
       const description = habit.description
         ? `<p class="hdesc">${escapeHtml(habit.description)}</p>`
         : '';
@@ -209,7 +223,10 @@ export function bindHabitEvents({
   // Inject day picker into add form after tinyVersionInput
   const freqContainer = document.createElement('div');
   freqContainer.innerHTML = renderDayPicker();
-  tinyVersionInput.parentNode.insertBefore(freqContainer, tinyVersionInput.nextSibling);
+  tinyVersionInput.parentNode.insertBefore(
+    freqContainer,
+    tinyVersionInput.nextSibling
+  );
   let dayPickerCtrl = bindDayPicker(freqContainer);
 
   function resetAddForm() {
@@ -272,7 +289,9 @@ export function bindHabitEvents({
 
     const habitId = item.getAttribute('data-habit-id');
     const action = actionBtn.getAttribute('data-action');
-    const habit = state.habits.find((entry) => habitIdResolver(entry) === habitId);
+    const habit = state.habits.find(
+      (entry) => habitIdResolver(entry) === habitId
+    );
 
     if (!habit) return;
 
@@ -303,7 +322,11 @@ export function bindHabitEvents({
           'Description (optional)',
           habit.description || ''
         );
-        await habitsAPI.update(habitId, name.trim(), (description || '').trim());
+        await habitsAPI.update(
+          habitId,
+          name.trim(),
+          (description || '').trim()
+        );
       }
 
       await refresh();

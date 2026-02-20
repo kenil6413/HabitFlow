@@ -60,14 +60,12 @@ export function createJournalController({
     const isToday = isSameDay(state.selectedDate, new Date());
     const datePicker = document.getElementById('jDatePicker');
 
-    document.getElementById('jDate').textContent = state.selectedDate.toLocaleDateString(
-      'en-US',
-      {
+    document.getElementById('jDate').textContent =
+      state.selectedDate.toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
-      }
-    );
+      });
 
     habitDateLabel.textContent = isToday
       ? 'Showing habits for Today'

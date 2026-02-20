@@ -109,7 +109,10 @@ export function renderFriendHabits(habits, sortBy = 'streak') {
       const totalCompletions = Array.isArray(habit.completions)
         ? habit.completions.length
         : 0;
-      const consistency = Math.min(100, Math.round((totalCompletions / 30) * 100));
+      const consistency = Math.min(
+        100,
+        Math.round((totalCompletions / 30) * 100)
+      );
 
       return `
         <div class="habit-item ${completedToday ? 'completed-today' : ''}">

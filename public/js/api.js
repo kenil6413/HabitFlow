@@ -128,8 +128,7 @@ const journalAPI = {
       body: JSON.stringify({ userId, date, content, images }),
     }),
 
-  getEntry: (userId, date) =>
-    apiCall(`/journal/user/${userId}/date/${date}`),
+  getEntry: (userId, date) => apiCall(`/journal/user/${userId}/date/${date}`),
 
   getAllEntries: (userId) => apiCall(`/journal/user/${userId}`),
 

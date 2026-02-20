@@ -41,7 +41,9 @@ export function createFriendsUI({
       <div class="alert alert-error">${escapeHtml(message)}</div>
       <button type="button" class="btn btn-secondary mt-2" id="modalCloseOnError">Close</button>
     `;
-    document.getElementById('modalCloseOnError')?.addEventListener('click', onClose);
+    document
+      .getElementById('modalCloseOnError')
+      ?.addEventListener('click', onClose);
   }
 
   return {

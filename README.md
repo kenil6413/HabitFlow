@@ -8,6 +8,7 @@ HabitFlow is a habit tracking web app built for Project 2 using Node.js, Express
 - Sukanya Sudhir Shete
 
 ## Class
+
 - Course: CS5610 Web Development
 - Class Link: https://johnguerra.co/classes/webDevelopment_online_spring_2026/
 - Assignment: Project 2 (Simple backend with Node + Express + Mongo + HTML5)

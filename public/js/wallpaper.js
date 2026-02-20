@@ -1,11 +1,15 @@
 import { assetsAPI } from './api.js';
 
 const STORAGE_KEY = 'habitflow_wallpaper_url';
-const FALLBACK_WALLPAPER = '/img/wp13694694-ultrawide-minimalist-wallpapers.jpg';
+const FALLBACK_WALLPAPER =
+  '/img/wp13694694-ultrawide-minimalist-wallpapers.jpg';
 
 function setWallpaperCss(url) {
   const safeUrl = url || FALLBACK_WALLPAPER;
-  document.documentElement.style.setProperty('--app-wallpaper', `url('${safeUrl}')`);
+  document.documentElement.style.setProperty(
+    '--app-wallpaper',
+    `url('${safeUrl}')`
+  );
   document.body.style.setProperty('--app-wallpaper', `url('${safeUrl}')`);
 }
 

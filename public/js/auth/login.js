@@ -15,9 +15,13 @@ function shakeCard() {
   // Force reflow so animation replays if already shaking
   void authCard.offsetWidth;
   authCard.classList.add('shake');
-  authCard.addEventListener('animationend', () => {
-    authCard.classList.remove('shake');
-  }, { once: true });
+  authCard.addEventListener(
+    'animationend',
+    () => {
+      authCard.classList.remove('shake');
+    },
+    { once: true }
+  );
 }
 
 loginForm.addEventListener('submit', async (event) => {

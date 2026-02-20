@@ -37,7 +37,10 @@ export function initPomodoro({
       Math.min(1, (modeTotalSeconds - remainingSeconds) / modeTotalSeconds)
     );
 
-    ringEl.style.setProperty('--progress-deg', `${Math.round(progress * 360)}deg`);
+    ringEl.style.setProperty(
+      '--progress-deg',
+      `${Math.round(progress * 360)}deg`
+    );
     durationEl.textContent = `${mode === 'focus' ? focusMinutes : breakMinutes} min`;
   }
 
@@ -98,9 +101,15 @@ export function initPomodoro({
 
   decreaseBtn.addEventListener('click', () => {
     if (mode === 'focus') {
-      focusMinutes = Math.max(MIN_FOCUS_MINUTES, focusMinutes - STEP_FOCUS_MINUTES);
+      focusMinutes = Math.max(
+        MIN_FOCUS_MINUTES,
+        focusMinutes - STEP_FOCUS_MINUTES
+      );
     } else {
-      breakMinutes = Math.max(MIN_BREAK_MINUTES, breakMinutes - STEP_BREAK_MINUTES);
+      breakMinutes = Math.max(
+        MIN_BREAK_MINUTES,
+        breakMinutes - STEP_BREAK_MINUTES
+      );
     }
 
     setMode(mode);

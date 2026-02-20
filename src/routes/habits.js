@@ -182,11 +182,16 @@ router.put('/:habitId', async (req, res) => {
       description: description || '',
     };
 
-    if (cueTime !== undefined) updateData.cueTime = normalizePlanField(cueTime, 8);
-    if (cueLocation !== undefined) updateData.cueLocation = normalizePlanField(cueLocation);
-    if (stackAfter !== undefined) updateData.stackAfter = normalizePlanField(stackAfter);
-    if (tinyVersion !== undefined) updateData.tinyVersion = normalizePlanField(tinyVersion);
-    if (frequency !== undefined) updateData.frequency = normalizeFrequency(frequency);
+    if (cueTime !== undefined)
+      updateData.cueTime = normalizePlanField(cueTime, 8);
+    if (cueLocation !== undefined)
+      updateData.cueLocation = normalizePlanField(cueLocation);
+    if (stackAfter !== undefined)
+      updateData.stackAfter = normalizePlanField(stackAfter);
+    if (tinyVersion !== undefined)
+      updateData.tinyVersion = normalizePlanField(tinyVersion);
+    if (frequency !== undefined)
+      updateData.frequency = normalizeFrequency(frequency);
 
     const result = await habitsCollection.updateOne(
       { _id: habitObjectId },
@@ -300,14 +305,18 @@ router.delete('/:habitId/complete/today', async (req, res) => {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    const filteredCompletions = (habit.completions || []).filter((completion) => {
-      const completionDate = new Date(completion.date);
-      completionDate.setHours(0, 0, 0, 0);
-      return completionDate.getTime() !== today.getTime();
-    });
+    const filteredCompletions = (habit.completions || []).filter(
+      (completion) => {
+        const completionDate = new Date(completion.date);
+        completionDate.setHours(0, 0, 0, 0);
+        return completionDate.getTime() !== today.getTime();
+      }
+    );
 
     if (filteredCompletions.length === (habit.completions || []).length) {
-      return res.status(400).json({ error: 'Habit is not marked complete for today' });
+      return res
+        .status(400)
+        .json({ error: 'Habit is not marked complete for today' });
     }
 
     const newStreak = calculateStreak(filteredCompletions);
@@ -344,7 +353,9 @@ router.put('/:habitId/completion', async (req, res) => {
 
     const today = normalizeDateOnly(new Date());
     if (targetDate.getTime() > today.getTime()) {
-      return res.status(400).json({ error: 'Cannot change completion for a future date' });
+      return res
+        .status(400)
+        .json({ error: 'Cannot change completion for a future date' });
     }
 
     const db = getDB();
@@ -355,7 +366,9 @@ router.put('/:habitId/completion', async (req, res) => {
       return res.status(404).json({ error: 'Habit not found' });
     }
 
-    const currentCompletions = Array.isArray(habit.completions) ? habit.completions : [];
+    const currentCompletions = Array.isArray(habit.completions)
+      ? habit.completions
+      : [];
     const cleanedCompletions = currentCompletions.filter(
       (entry) => !isSameDate(entry.date, targetDate)
     );

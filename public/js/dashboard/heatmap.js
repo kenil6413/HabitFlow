@@ -76,7 +76,13 @@ export function renderStreakProgress({ habits, startOfDay, escapeHtml }) {
     .join('');
 }
 
-export function renderWeekRow({ habits, dayNames, startOfDay, isSameDay, toDateKey }) {
+export function renderWeekRow({
+  habits,
+  dayNames,
+  startOfDay,
+  isSameDay,
+  toDateKey,
+}) {
   const row = document.getElementById('weekRow');
   const completionMap = getAllCompletionsMap(habits, toDateKey);
   const today = startOfDay(new Date());
@@ -90,7 +96,8 @@ export function renderWeekRow({ habits, dayNames, startOfDay, isSameDay, toDateK
       const date = new Date(monday);
       date.setDate(monday.getDate() + idx);
 
-      const hasAny = getCompletionsCountForDate(completionMap, date, toDateKey) > 0;
+      const hasAny =
+        getCompletionsCountForDate(completionMap, date, toDateKey) > 0;
       const todayClass = isSameDay(date, today) ? ' today' : '';
       const doneClass = hasAny ? ' done' : '';
       const marker = hasAny ? '✓' : '';
@@ -116,7 +123,8 @@ function drawGrid(year) {
 
   // Update label buttons
   document.getElementById('hmYearLabel').textContent = `Year ${year}`;
-  document.getElementById('hmNextYear').disabled = year >= new Date().getFullYear();
+  document.getElementById('hmNextYear').disabled =
+    year >= new Date().getFullYear();
 
   wrap.innerHTML = '';
   wrap.style.overflowX = 'hidden';
@@ -163,8 +171,13 @@ function drawGrid(year) {
     weekStart.setDate(start.getDate() + w * 7);
 
     const monthLabel = document.createElement('span');
-    if (weekStart.getFullYear() === year && weekStart.getMonth() !== lastMonth) {
-      monthLabel.textContent = weekStart.toLocaleDateString('en-US', { month: 'short' });
+    if (
+      weekStart.getFullYear() === year &&
+      weekStart.getMonth() !== lastMonth
+    ) {
+      monthLabel.textContent = weekStart.toLocaleDateString('en-US', {
+        month: 'short',
+      });
       lastMonth = weekStart.getMonth();
     } else {
       monthLabel.textContent = '';
@@ -178,15 +191,25 @@ function drawGrid(year) {
       const inYear = date.getFullYear() === year;
       const count = inYear
         ? (() => {
-            const c = getCompletionsCountForDate(completionMap, date, _toDateKey);
-            if (c > 0) { activeDays += 1; completionsInRange += c; }
+            const c = getCompletionsCountForDate(
+              completionMap,
+              date,
+              _toDateKey
+            );
+            if (c > 0) {
+              activeDays += 1;
+              completionsInRange += c;
+            }
             return c;
           })()
         : 0;
       const level = inYear ? levelFromCount(count) : 0;
       const cell = makeCell(level, null, null, '3px');
       if (inYear) {
-        const dl = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const dl = date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
         cell.title = count === 1 ? `${dl}: 1 habit` : `${dl}: ${count} habits`;
       }
       if (!inYear) cell.style.opacity = '0.08';

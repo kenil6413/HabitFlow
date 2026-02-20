@@ -3,6 +3,7 @@
 This is a practical checklist for final QA before submission.
 
 ## Already Covered in Code
+
 - ESLint config exists (`eslint.config.js`)
 - Lint command runs without errors (`npm run lint`)
 - Prettier config exists (`.prettierrc`)
@@ -35,6 +36,7 @@ This is a practical checklist for final QA before submission.
   - `journal`
 
 ## Manual Checks Before Final Submission
+
 - Deployment URL works publicly
 - README includes final screenshot file(s)
 - README includes complete usage instructions

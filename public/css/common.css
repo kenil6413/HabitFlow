@@ -150,7 +150,11 @@ p {
   right: 0;
   z-index: 100;
   padding: 14px 24px;
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.42) 0%, rgba(2, 6, 23, 0.16) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(2, 6, 23, 0.42) 0%,
+    rgba(2, 6, 23, 0.16) 100%
+  );
   border-bottom: 1px solid rgba(226, 232, 240, 0.12);
   box-shadow: 0 6px 18px rgba(2, 6, 23, 0.16);
   backdrop-filter: blur(8px);
@@ -636,7 +640,11 @@ textarea {
 }
 
 .profile-user-card {
-  background: linear-gradient(135deg, rgba(194, 65, 12, 0.14), rgba(245, 158, 11, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(194, 65, 12, 0.14),
+    rgba(245, 158, 11, 0.1)
+  );
   border: 1px solid rgba(194, 65, 12, 0.2);
   border-radius: 10px;
   padding: 12px 13px;

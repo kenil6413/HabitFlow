@@ -2,8 +2,16 @@
 
 .friends-page {
   background:
-    radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.15), transparent 34%),
-    radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.1), transparent 30%),
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(59, 130, 246, 0.15),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 90% 90%,
+      rgba(245, 158, 11, 0.1),
+      transparent 30%
+    ),
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
 }
 
@@ -573,7 +581,10 @@
   color: #f8fafc;
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.34) 0%, rgba(2, 6, 23, 0.52) 100%),
-    var(--app-wallpaper, url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg'));
+    var(
+      --app-wallpaper,
+      url('/img/wp13694694-ultrawide-minimalist-wallpapers.jpg')
+    );
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -595,8 +606,11 @@
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse at center, rgba(15, 23, 42, 0.05) 0%, rgba(2, 6, 23, 0.45) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(15, 23, 42, 0.05) 0%,
+    rgba(2, 6, 23, 0.45) 100%
+  );
   z-index: -1;
 }
 
@@ -812,18 +826,31 @@
   padding: 4px;
 }
 
-.btn-pin-friend .pin-icon { font-size: 18px; line-height: 1; }
+.btn-pin-friend .pin-icon {
+  font-size: 18px;
+  line-height: 1;
+}
 .btn-pin-friend .pin-txt {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
-.btn-unpinned { color: rgba(241, 245, 249, 0.4); }
-.btn-unpinned:hover { color: #fbbf24; }
+.btn-unpinned {
+  color: rgba(241, 245, 249, 0.4);
+}
+.btn-unpinned:hover {
+  color: #fbbf24;
+}
 
-.btn-pinned { color: #fbbf24; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5)); }
-.btn-pinned:hover { color: rgba(241, 245, 249, 0.6); filter: none; }
+.btn-pinned {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+}
+.btn-pinned:hover {
+  color: rgba(241, 245, 249, 0.6);
+  filter: none;
+}
 
 .friends-page .friend-card.friend-card-pinned {
   border-left: 4px solid rgba(245, 158, 11, 0.9);

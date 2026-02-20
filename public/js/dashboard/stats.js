@@ -8,7 +8,10 @@ export function renderStats({ habits, startOfDay, toDateKey, isSameDay }) {
 
   let bestHabit = null;
   habits.forEach((habit) => {
-    if (!bestHabit || (habit.currentStreak || 0) > (bestHabit.currentStreak || 0)) {
+    if (
+      !bestHabit ||
+      (habit.currentStreak || 0) > (bestHabit.currentStreak || 0)
+    ) {
       bestHabit = habit;
     }
   });
@@ -42,7 +45,8 @@ export function renderStats({ habits, startOfDay, toDateKey, isSameDay }) {
     : 0;
 
   document.getElementById('statActiveHabits').textContent = String(totalHabits);
-  document.getElementById('statActiveSub').textContent = `${doneToday} done today`;
+  document.getElementById('statActiveSub').textContent =
+    `${doneToday} done today`;
 
   document.getElementById('statBestStreak').textContent = String(
     bestHabit?.currentStreak || 0
@@ -51,9 +55,12 @@ export function renderStats({ habits, startOfDay, toDateKey, isSameDay }) {
     ? bestHabit.name
     : 'No streak yet';
 
-  document.getElementById('statCompletionRate').textContent = `${completionRate}%`;
+  document.getElementById('statCompletionRate').textContent =
+    `${completionRate}%`;
   document.getElementById('statCompletionSub').textContent = 'Last 30 days';
 
-  document.getElementById('statDaysLogged').textContent = String(monthDaysLogged.size);
+  document.getElementById('statDaysLogged').textContent = String(
+    monthDaysLogged.size
+  );
   document.getElementById('statDaysSub').textContent = 'This month';
 }

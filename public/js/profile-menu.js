@@ -201,14 +201,20 @@ export function initProfileDropdown({
 
   // ── Password modal events ──
   passwordModal.addEventListener('click', (e) => {
-    if (e.target === passwordModal || e.target.closest('[data-close-password-modal]')) {
+    if (
+      e.target === passwordModal ||
+      e.target.closest('[data-close-password-modal]')
+    ) {
       closePasswordModal();
     }
   });
 
   // ── Delete modal events ──
   deleteModal.addEventListener('click', (e) => {
-    if (e.target === deleteModal || e.target.closest('[data-close-delete-modal]')) {
+    if (
+      e.target === deleteModal ||
+      e.target.closest('[data-close-delete-modal]')
+    ) {
       closeDeleteModal();
     }
   });
@@ -224,9 +230,13 @@ export function initProfileDropdown({
   passwordForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const currentPassword = document.getElementById('profileCurrentPassword')?.value;
+    const currentPassword = document.getElementById(
+      'profileCurrentPassword'
+    )?.value;
     const newPassword = document.getElementById('profileNewPassword')?.value;
-    const confirmPassword = document.getElementById('profileConfirmPassword')?.value;
+    const confirmPassword = document.getElementById(
+      'profileConfirmPassword'
+    )?.value;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       showPasswordMessage('Please fill all fields.', 'error');
@@ -237,11 +247,17 @@ export function initProfileDropdown({
       return;
     }
     if (newPassword.length < 6) {
-      showPasswordMessage('New password must be at least 6 characters.', 'error');
+      showPasswordMessage(
+        'New password must be at least 6 characters.',
+        'error'
+      );
       return;
     }
     if (newPassword === currentPassword) {
-      showPasswordMessage('New password must be different from current password.', 'error');
+      showPasswordMessage(
+        'New password must be different from current password.',
+        'error'
+      );
       return;
     }
 
@@ -252,7 +268,10 @@ export function initProfileDropdown({
       showPasswordMessage('Password updated successfully.', 'success');
       setTimeout(() => closePasswordModal(), 1200);
     } catch (error) {
-      showPasswordMessage(error.message || 'Unable to change password.', 'error');
+      showPasswordMessage(
+        error.message || 'Unable to change password.',
+        'error'
+      );
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Update Password';
