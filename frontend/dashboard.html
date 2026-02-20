@@ -90,7 +90,13 @@
         <div class="jbody">
           <div class="jphotos">
             <div class="jplabel">📷 Memories</div>
-            <label class="dropzone" for="photoIn">
+            <div
+              class="dropzone"
+              id="photoDropzone"
+              role="button"
+              tabindex="0"
+              aria-label="Add journal photos"
+            >
               <input
                 type="file"
                 id="photoIn"
@@ -98,12 +104,12 @@
                 multiple
                 class="hidden"
               />
-              <div id="dropDef">
-                <div class="dicon">🖼️</div>
-                <div class="dtext">Click to add photos</div>
-              </div>
+              <span id="dropDef">
+                <span class="dicon">🖼️</span>
+                <span class="dtext">Click to add photos</span>
+              </span>
               <div id="pgrid" class="pgrid hidden"></div>
-            </label>
+            </div>
           </div>
           <div class="jwriting">
             <div class="jwlabel">✍️ Today's thoughts...</div>
@@ -137,7 +143,7 @@
               + Add Habit
             </button>
             <button class="edit-toggle" id="editToggle">
-              <div class="edot"></div>
+              <span class="edot"></span>
               Edit
             </button>
           </div>

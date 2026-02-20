@@ -133,6 +133,22 @@ export function createJournalController({
   }
 
   function bindJournalEvents() {
+    const photoInput = document.getElementById('photoIn');
+    const photoDropzone = document.getElementById('photoDropzone');
+
+    if (photoDropzone && photoInput) {
+      photoDropzone.addEventListener('click', (event) => {
+        if (event.target.closest('[data-remove-photo]')) return;
+        photoInput.click();
+      });
+
+      photoDropzone.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        photoInput.click();
+      });
+    }
+
     document.getElementById('jPrev').addEventListener('click', async () => {
       state.selectedDate.setDate(state.selectedDate.getDate() - 1);
       state.selectedDate = startOfDay(state.selectedDate);
@@ -175,47 +191,45 @@ export function createJournalController({
       }
     });
 
-    document
-      .getElementById('photoIn')
-      .addEventListener('change', async (event) => {
-        const files = Array.from(event.target.files || []);
-        const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
-        let totalBytes = state.photos.reduce(
-          (sum, photo) => sum + estimateBase64Bytes(photo),
-          0
-        );
+    photoInput.addEventListener('change', async (event) => {
+      const files = Array.from(event.target.files || []);
+      const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
+      let totalBytes = state.photos.reduce(
+        (sum, photo) => sum + estimateBase64Bytes(photo),
+        0
+      );
 
-        for (const file of files) {
-          if (!file.type.startsWith('image/')) continue;
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
 
-          try {
-            const optimized = await optimizeImage(file);
-            const imageBytes = estimateBase64Bytes(optimized);
+        try {
+          const optimized = await optimizeImage(file);
+          const imageBytes = estimateBase64Bytes(optimized);
 
-            if (totalBytes + imageBytes > MAX_TOTAL_BYTES) {
-              alert('Image set is too large. Please add fewer/smaller photos.');
-              break;
-            }
-
-            state.photos.push(optimized);
-            totalBytes += imageBytes;
-          } catch {
-            const fallback = await readFileAsDataURL(file);
-            const imageBytes = estimateBase64Bytes(fallback);
-
-            if (totalBytes + imageBytes > MAX_TOTAL_BYTES) {
-              alert('Image set is too large. Please add fewer/smaller photos.');
-              break;
-            }
-
-            state.photos.push(fallback);
-            totalBytes += imageBytes;
+          if (totalBytes + imageBytes > MAX_TOTAL_BYTES) {
+            alert('Image set is too large. Please add fewer/smaller photos.');
+            break;
           }
-        }
 
-        renderPhotos();
-        event.target.value = '';
-      });
+          state.photos.push(optimized);
+          totalBytes += imageBytes;
+        } catch {
+          const fallback = await readFileAsDataURL(file);
+          const imageBytes = estimateBase64Bytes(fallback);
+
+          if (totalBytes + imageBytes > MAX_TOTAL_BYTES) {
+            alert('Image set is too large. Please add fewer/smaller photos.');
+            break;
+          }
+
+          state.photos.push(fallback);
+          totalBytes += imageBytes;
+        }
+      }
+
+      renderPhotos();
+      event.target.value = '';
+    });
 
     document.getElementById('pgrid').addEventListener('click', (event) => {
       const removeBtn = event.target.closest('[data-remove-photo]');
