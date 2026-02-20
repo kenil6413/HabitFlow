@@ -108,6 +108,7 @@
 }
 
 .pomodoro-ring {
+  --progress-deg: 0deg;
   width: clamp(190px, 21vw, 265px);
   aspect-ratio: 1;
   margin: 0 auto 14px;

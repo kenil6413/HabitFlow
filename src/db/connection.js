@@ -15,10 +15,10 @@ export async function connectDB() {
   try {
     await client.connect();
     db = client.db();
-    console.log('✅ Connected to MongoDB Atlas');
+    console.log('Connected to MongoDB Atlas');
     return db;
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   }
 }

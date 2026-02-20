@@ -23,6 +23,52 @@ export function createJournalController({
   isSameDay,
   renderHabits,
 }) {
+  function formatLongDate(date) {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  function formatDateTime(value) {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  function setJournalMeta(entry) {
+    const footer = document.querySelector('.jpnum');
+    const sub = document.querySelector('.jsub');
+    if (!footer || !sub) return;
+
+    const selectedLabel = formatLongDate(state.selectedDate);
+    if (!entry) {
+      sub.textContent = 'No entry saved for this date';
+      footer.textContent = `No entry for ${selectedLabel}`;
+      return;
+    }
+
+    const createdText = formatDateTime(entry.createdAt);
+    const updatedText = formatDateTime(entry.updatedAt);
+    sub.textContent = 'Entry found for selected date';
+
+    if (createdText && updatedText && createdText !== updatedText) {
+      footer.textContent = `Created: ${createdText} • Updated: ${updatedText}`;
+      return;
+    }
+
+    footer.textContent = `Saved: ${updatedText || createdText || selectedLabel}`;
+  }
+
   function renderPhotos() {
     const grid = document.getElementById('pgrid');
     const empty = document.getElementById('dropDef');
@@ -50,26 +96,25 @@ export function createJournalController({
   }
 
   function updateJournalHeader() {
-    const formattedDate = state.selectedDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
+    const formattedDate = formatLongDate(state.selectedDate);
 
     const habitDateLabel = document.getElementById('habitDateLabel');
     const isToday = isSameDay(state.selectedDate, new Date());
     const datePicker = document.getElementById('jDatePicker');
+    const writingLabel = document.querySelector('.jwlabel');
 
-    document.getElementById('jDate').textContent =
-      state.selectedDate.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-      });
+    document.getElementById('jDate').textContent = formattedDate;
 
     habitDateLabel.textContent = isToday
       ? 'Showing habits for Today'
       : `Showing habits for ${formattedDate}`;
+
+    if (writingLabel) {
+      writingLabel.textContent = isToday
+        ? "✍️ Today's thoughts..."
+        : `✍️ Thoughts for ${formattedDate}`;
+    }
+
     datePicker.value = toDateKey(state.selectedDate);
   }
 
@@ -83,6 +128,7 @@ export function createJournalController({
     document.getElementById('jEntryText').value = entry?.content || '';
     state.photos = Array.isArray(entry?.images) ? [...entry.images] : [];
     renderPhotos();
+    setJournalMeta(entry);
     renderHabits();
   }
 
@@ -120,10 +166,10 @@ export function createJournalController({
           document.getElementById('jEntryText').value,
           state.photos
         );
-        document.querySelector('.jpnum').textContent = 'Saved';
+        document.querySelector('.jpnum').textContent = 'Saved just now';
         setTimeout(() => {
-          document.querySelector('.jpnum').textContent = "✦ today's entry";
-        }, 1200);
+          loadJournalEntry().catch(() => {});
+        }, 700);
       } catch (error) {
         alert(error.message || 'Unable to save journal entry');
       }

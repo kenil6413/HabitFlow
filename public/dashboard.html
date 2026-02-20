@@ -16,41 +16,18 @@
         <div class="row-between">
           <div>
             <span class="section-label">Activity Heatmap</span>
-            <div
-              style="font-size: 12px; color: var(--muted); margin-top: 3px"
-              id="hmSummary"
-            ></div>
+            <div class="hm-summary" id="hmSummary"></div>
           </div>
-          <span
-            id="hmRangeLabel"
-            style="
-              font-size: 14px;
-              font-weight: 700;
-              color: var(--accent);
-              font-family: 'Lora', Georgia, serif;
-            "
-          ></span>
+          <span id="hmRangeLabel" class="hm-range-label"></span>
         </div>
-        <div id="hmWrap" style="margin-bottom: 16px"></div>
+        <div id="hmWrap" class="hm-wrap"></div>
         <div class="legend">
           <span>Less</span>
-          <div
-            class="lswatch"
-            style="background: rgba(148, 163, 184, 0.2)"
-          ></div>
-          <div
-            class="lswatch"
-            style="background: rgba(251, 191, 36, 0.3)"
-          ></div>
-          <div
-            class="lswatch"
-            style="background: rgba(245, 158, 11, 0.52)"
-          ></div>
-          <div
-            class="lswatch"
-            style="background: rgba(249, 115, 22, 0.75)"
-          ></div>
-          <div class="lswatch" style="background: #ef4444"></div>
+          <div class="lswatch lswatch-0"></div>
+          <div class="lswatch lswatch-1"></div>
+          <div class="lswatch lswatch-2"></div>
+          <div class="lswatch lswatch-3"></div>
+          <div class="lswatch lswatch-4"></div>
           <span>More</span>
         </div>
       </div>
@@ -85,21 +62,11 @@
       <div class="card">
         <div class="row-between">
           <span class="section-label">Streak Progress</span>
-          <span style="font-size: 12px; color: var(--muted)">Last 30 days</span>
+          <span class="streak-sub-label">Last 30 days</span>
         </div>
         <div id="streakProgressList"></div>
-        <div style="margin-top: 20px">
-          <div
-            style="
-              font-size: 12px;
-              color: var(--muted);
-              font-weight: 600;
-              margin-bottom: 12px;
-              letter-spacing: 0.3px;
-            "
-          >
-            THIS WEEK
-          </div>
+        <div class="week-section">
+          <div class="week-caption">THIS WEEK</div>
           <div class="week-row" id="weekRow"></div>
         </div>
       </div>
@@ -112,7 +79,7 @@
             <div class="jdate" id="jDate"></div>
             <div class="jsub">Daily Journal</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px">
+          <div class="jhead-actions">
             <button class="jnav" id="jPrev">&#8249;</button>
             <input type="date" id="jDatePicker" class="jdate-picker" />
             <button class="jnav" id="jToday">Today</button>
@@ -129,13 +96,13 @@
                 id="photoIn"
                 accept="image/*"
                 multiple
-                style="display: none"
+                class="hidden"
               />
               <div id="dropDef">
                 <div class="dicon">🖼️</div>
                 <div class="dtext">Click to add photos</div>
               </div>
-              <div id="pgrid" class="pgrid" style="display: none"></div>
+              <div id="pgrid" class="pgrid hidden"></div>
             </label>
           </div>
           <div class="jwriting">
@@ -165,7 +132,7 @@
             <span class="section-label">My Habits</span>
             <div id="habitDateLabel" class="habit-date-label"></div>
           </div>
-          <div style="display: flex; gap: 8px">
+          <div class="habit-actions">
             <button class="btn btn-primary btn-sm" id="openAddBtn">
               + Add Habit
             </button>

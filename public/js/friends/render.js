@@ -133,7 +133,7 @@ export function renderFriendHabits(habits, sortBy = 'streak') {
             <span class="habit-completion-value">${consistency}% consistency</span>
           </div>
           <div class="habit-meter">
-            <span class="habit-meter-fill" style="width:${consistency}%"></span>
+            <span class="habit-meter-fill" data-width="${consistency}"></span>
           </div>
           <div class="habit-meta">
             Created ${formatDate(habit.createdAt)}

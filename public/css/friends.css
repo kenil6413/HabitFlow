@@ -527,6 +527,7 @@
 
 .habit-meter-fill {
   display: block;
+  width: 0;
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #fb923c, #f59e0b);

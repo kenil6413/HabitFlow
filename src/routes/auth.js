@@ -67,9 +67,10 @@ router.post('/register', async (req, res) => {
     }
 
     if (!isValidUsername(username)) {
-      return res
-        .status(400)
-        .json({ error: 'Username must be 3-20 alphanumeric characters' });
+      return res.status(400).json({
+        error:
+          'Username must be 3-20 characters using letters, numbers, or underscores',
+      });
     }
 
     const passwordError = validatePassword(password);

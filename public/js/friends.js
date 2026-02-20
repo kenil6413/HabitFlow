@@ -111,6 +111,17 @@ function getVisibleModalHabits() {
   return state.modalHabits.filter((habit) => isCompletedToday(habit));
 }
 
+function applyHabitMeterWidths() {
+  elements.modalHabitsList
+    .querySelectorAll('.habit-meter-fill[data-width]')
+    .forEach((entry) => {
+      const width = Number(entry.dataset.width);
+      if (Number.isFinite(width)) {
+        entry.style.width = `${Math.max(0, Math.min(100, width))}%`;
+      }
+    });
+}
+
 function renderModalHabitsList() {
   const visibleHabits = getVisibleModalHabits();
   if (!visibleHabits.length) {
@@ -131,6 +142,7 @@ function renderModalHabitsList() {
     visibleHabits,
     elements.habitSortSelect.value
   );
+  applyHabitMeterWidths();
 }
 
 function setModalHabitFilter(filterKey) {

@@ -95,7 +95,7 @@ Run lint:
 npm run lint
 ```
 
-Seed rubric/demo data (creates 1000+ records):
+Seed sample data (creates 1000+ records):
 
 ```bash
 npm run seed:rubric
@@ -107,10 +107,16 @@ Optional seed customization:
 node scripts/seed-rubric-data.js --users=50 --habits-per-user=25 --journals-per-user=6
 ```
 
-Default rubric seed users:
+Seed with one specific journal image for every entry:
 
-- username prefix: `rubric_user_`
-- password: `HabitFlow123!`
+```bash
+node scripts/seed-rubric-data.js --journal-image=/img/dog.jpg
+```
+
+Default seeded users:
+
+- username prefix: `user_`
+- password: `123456`
 
 ## Project Structure
 

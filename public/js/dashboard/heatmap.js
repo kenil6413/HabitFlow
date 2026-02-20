@@ -45,7 +45,7 @@ export function renderStreakProgress({ habits, startOfDay, escapeHtml }) {
 
   if (!topHabits.length) {
     container.innerHTML =
-      '<div style="font-size:13px;color:var(--muted)">Add habits to see streak progress.</div>';
+      '<div class="empty-copy">Add habits to see streak progress.</div>';
     return;
   }
 
@@ -69,11 +69,18 @@ export function renderStreakProgress({ habits, startOfDay, escapeHtml }) {
             <span class="pbar-name">${escapeHtml(habit.name)}</span>
             <span class="pbar-val">${completedIn30} / 30 days</span>
           </div>
-          <div class="track"><div class="${fillClass}" style="width:${percent}%"></div></div>
+          <div class="track"><div class="${fillClass}" data-width="${percent}"></div></div>
         </div>
       `;
     })
     .join('');
+
+  container.querySelectorAll('.fill[data-width]').forEach((entry) => {
+    const width = Number(entry.dataset.width);
+    if (Number.isFinite(width)) {
+      entry.style.width = `${Math.max(0, Math.min(100, width))}%`;
+    }
+  });
 }
 
 export function renderWeekRow({
@@ -127,8 +134,6 @@ function drawGrid(year) {
     year >= new Date().getFullYear();
 
   wrap.innerHTML = '';
-  wrap.style.overflowX = 'hidden';
-  wrap.style.marginBottom = '16px';
 
   let activeDays = 0;
   let completionsInRange = 0;
@@ -234,12 +239,9 @@ export function renderHeatmap({ habits, toDateKey }) {
   const label = document.getElementById('hmRangeLabel');
   label.innerHTML = `
     <button id="hmPrevYear" class="hm-nav-btn">&#8249;</button>
-    <span id="hmYearLabel" style="font-size:14px;font-weight:700;color:var(--accent);font-family:'Lora',Georgia,serif;min-width:80px;text-align:center;">Year ${_year}</span>
+    <span id="hmYearLabel" class="hm-year-label">Year ${_year}</span>
     <button id="hmNextYear" class="hm-nav-btn" disabled>&#8250;</button>
   `;
-  label.style.display = 'flex';
-  label.style.alignItems = 'center';
-  label.style.gap = '6px';
 
   document.getElementById('hmPrevYear').addEventListener('click', () => {
     _year -= 1;

@@ -7,8 +7,16 @@ dotenv.config();
 const DEFAULT_USERS = 40;
 const DEFAULT_HABITS_PER_USER = 30;
 const DEFAULT_JOURNALS_PER_USER = 6;
-const USERNAME_PREFIX = 'rubric_user_';
-const DEFAULT_PASSWORD = 'HabitFlow123!';
+const USERNAME_PREFIX = 'user_';
+const DEFAULT_PASSWORD = '123456';
+const MIN_FRIENDS_PER_USER = 2;
+const MAX_FRIENDS_PER_USER = 6;
+const JOURNAL_IMAGE_POOL = [
+  '/img/minimalist-mountains-river-at-dawn-desktop-wallpaper.jpg',
+  '/img/pastel-ocean-sunset-aesthetic-desktop-wallpaper-4k.jpg',
+  '/img/wp13694694-ultrawide-minimalist-wallpapers.jpg',
+  '/img/wp13694699-ultrawide-minimalist-wallpapers.jpg',
+];
 
 function parsePositiveInt(rawValue, fallback) {
   const parsed = Number(rawValue);
@@ -24,6 +32,12 @@ function parseArgs() {
     })
   );
 
+  const rawJournalImage = args.get('--journal-image');
+  const journalImage =
+    typeof rawJournalImage === 'string' && rawJournalImage.trim()
+      ? rawJournalImage.trim()
+      : '';
+
   return {
     users: parsePositiveInt(args.get('--users'), DEFAULT_USERS),
     habitsPerUser: parsePositiveInt(
@@ -34,6 +48,7 @@ function parseArgs() {
       args.get('--journals-per-user'),
       DEFAULT_JOURNALS_PER_USER
     ),
+    journalImage,
   };
 }
 
@@ -69,6 +84,13 @@ function randomCompletions(maxEntries = 15, daysBack = 90) {
   return completions;
 }
 
+function randomUniqueItems(items, count) {
+  if (!Array.isArray(items) || items.length === 0 || count <= 0) return [];
+  const copy = [...items];
+  copy.sort(() => Math.random() - 0.5);
+  return copy.slice(0, Math.min(count, copy.length));
+}
+
 function chunkArray(items, size) {
   const chunks = [];
   for (let i = 0; i < items.length; i += size) {
@@ -77,7 +99,7 @@ function chunkArray(items, size) {
   return chunks;
 }
 
-async function clearExistingRubricData({
+async function clearExistingSeedData({
   usersCollection,
   habitsCollection,
   journalCollection,
@@ -115,12 +137,11 @@ async function clearExistingRubricData({
 
 function buildUsers({ count, passwordHash }) {
   return Array.from({ length: count }, (_, index) => {
-    const serial = String(index + 1).padStart(3, '0');
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - randomInt(0, 120));
 
     return {
-      username: `${USERNAME_PREFIX}${serial}`,
+      username: `${USERNAME_PREFIX}${index + 1}`,
       password: passwordHash,
       shareCode: `HABIT-${String(60000 + index)}`,
       friends: [],
@@ -142,7 +163,7 @@ function buildHabits({ userDocs, habitsPerUser }) {
       habitDocs.push({
         userId: userDoc._id,
         name: `Habit ${i} - User ${userIndex + 1}`,
-        description: `Demo habit ${i} created for rubric data seeding.`,
+        description: `Demo habit ${i} generated for sample data.`,
         cueTime: '',
         cueLocation: '',
         stackAfter: '',
@@ -158,8 +179,82 @@ function buildHabits({ userDocs, habitsPerUser }) {
   return habitDocs;
 }
 
-function buildJournals({ userDocs, journalsPerUser }) {
+function connectUsers(friendSets, leftIndex, rightIndex) {
+  if (leftIndex === rightIndex) return;
+  friendSets[leftIndex].add(rightIndex);
+  friendSets[rightIndex].add(leftIndex);
+}
+
+function buildFriendNetwork(userDocs) {
+  const totalUsers = userDocs.length;
+  const friendSets = Array.from({ length: totalUsers }, () => new Set());
+
+  if (totalUsers <= 1) return [];
+
+  for (let index = 0; index < totalUsers; index += 1) {
+    connectUsers(friendSets, index, (index + 1) % totalUsers);
+  }
+
+  const minFriends = Math.min(MIN_FRIENDS_PER_USER, totalUsers - 1);
+  const maxFriends = Math.min(MAX_FRIENDS_PER_USER, totalUsers - 1);
+  const targetCounts = Array.from({ length: totalUsers }, () =>
+    randomInt(minFriends, maxFriends)
+  );
+
+  let changed = true;
+  let guard = 0;
+  const guardLimit = totalUsers * totalUsers * 4;
+
+  while (changed && guard < guardLimit) {
+    changed = false;
+    guard += 1;
+
+    for (let index = 0; index < totalUsers; index += 1) {
+      if (friendSets[index].size >= targetCounts[index]) continue;
+
+      const candidates = [];
+      for (let candidate = 0; candidate < totalUsers; candidate += 1) {
+        if (candidate === index) continue;
+        if (friendSets[index].has(candidate)) continue;
+
+        if (
+          friendSets[candidate].size >= targetCounts[candidate] &&
+          Math.random() < 0.7
+        ) {
+          continue;
+        }
+
+        candidates.push(candidate);
+      }
+
+      if (!candidates.length) continue;
+
+      const candidate =
+        candidates[randomInt(0, Math.max(0, candidates.length - 1))];
+      connectUsers(friendSets, index, candidate);
+      changed = true;
+    }
+  }
+
+  return userDocs.map((userDoc, index) => {
+    const friendIds = [...friendSets[index]].map(
+      (friendIndex) => userDocs[friendIndex]._id
+    );
+    const maxPins = Math.min(2, friendIds.length);
+    const pinCount = maxPins > 0 ? randomInt(0, maxPins) : 0;
+    const pinnedFriends = randomUniqueItems(friendIds, pinCount);
+
+    return {
+      userId: userDoc._id,
+      friends: friendIds,
+      pinnedFriends,
+    };
+  });
+}
+
+function buildJournals({ userDocs, journalsPerUser, journalImage }) {
   const journalDocs = [];
+  const preferredImage = journalImage || null;
 
   userDocs.forEach((userDoc, userIndex) => {
     for (let i = 0; i < journalsPerUser; i += 1) {
@@ -167,11 +262,15 @@ function buildJournals({ userDocs, journalsPerUser }) {
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
 
+      const images = preferredImage
+        ? [preferredImage]
+        : randomUniqueItems(JOURNAL_IMAGE_POOL, randomInt(1, 2));
+
       journalDocs.push({
         userId: userDoc._id,
         date,
-        content: `Rubric seed journal entry #${i + 1} for user ${userIndex + 1}.`,
-        images: [],
+        content: `Daily journal entry #${i + 1} for user ${userIndex + 1}.`,
+        images,
         createdAt: new Date(date),
         updatedAt: new Date(),
       });
@@ -182,7 +281,7 @@ function buildJournals({ userDocs, journalsPerUser }) {
 }
 
 async function main() {
-  const { users, habitsPerUser, journalsPerUser } = parseArgs();
+  const { users, habitsPerUser, journalsPerUser, journalImage } = parseArgs();
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
@@ -198,7 +297,7 @@ async function main() {
     const habitsCollection = db.collection('habits');
     const journalCollection = db.collection('journal');
 
-    await clearExistingRubricData({
+    await clearExistingSeedData({
       usersCollection,
       habitsCollection,
       journalCollection,
@@ -213,6 +312,23 @@ async function main() {
       _id: insertUsersResult.insertedIds[index],
     }));
 
+    const friendNetwork = buildFriendNetwork(insertedUserDocs);
+    if (friendNetwork.length) {
+      await usersCollection.bulkWrite(
+        friendNetwork.map((entry) => ({
+          updateOne: {
+            filter: { _id: entry.userId },
+            update: {
+              $set: {
+                friends: entry.friends,
+                pinnedFriends: entry.pinnedFriends,
+              },
+            },
+          },
+        }))
+      );
+    }
+
     const habitDocs = buildHabits({
       userDocs: insertedUserDocs,
       habitsPerUser,
@@ -221,6 +337,7 @@ async function main() {
     const journalDocs = buildJournals({
       userDocs: insertedUserDocs,
       journalsPerUser,
+      journalImage,
     });
 
     const habitChunks = chunkArray(habitDocs, 1000);
@@ -244,18 +361,25 @@ async function main() {
         userId: { $in: insertedUserDocs.map((u) => u._id) },
       }),
     ]);
+    const totalDirectionalFriendLinks = friendNetwork.reduce(
+      (sum, entry) => sum + entry.friends.length,
+      0
+    );
 
-    console.log('Rubric seed completed successfully.');
+    console.log('Seed completed successfully.');
     console.log(`Users inserted: ${userCount}`);
     console.log(`Habits inserted: ${habitCount}`);
     console.log(`Journal entries inserted: ${journalCount}`);
-    console.log(`Default seed password for rubric users: ${DEFAULT_PASSWORD}`);
+    console.log(
+      `Friend connections created: ${Math.floor(totalDirectionalFriendLinks / 2)}`
+    );
+    console.log(`Default seed password: ${DEFAULT_PASSWORD}`);
   } finally {
     await client.close();
   }
 }
 
 main().catch((error) => {
-  console.error('Rubric seed failed:', error);
+  console.error('Seed failed:', error);
   process.exit(1);
 });
