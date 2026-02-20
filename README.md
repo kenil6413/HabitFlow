@@ -6,8 +6,9 @@ HabitFlow is a minimalist habit tracker built for Project 2 (Node + Express + Mo
 - Kenil Jitendrakumar Patel
 - Sukanya Sudhir Shete
 
-## Class Link
-- Course: WEB_DEV
+## Class
+- Course: CS5610 Web Development
+- Class Link: https://johnguerra.co/classes/webDevelopment_online_spring_2026/
 - Assignment: Project 2 (Simple backend with Node + Express + Mongo + HTML5)
 
 ## Project Objective
