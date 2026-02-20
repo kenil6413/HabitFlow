@@ -121,7 +121,7 @@ Default seeded users:
 ## Project Structure
 
 ```text
-src/
+backend/
   server.js
   db/
     connection.js
@@ -135,7 +135,7 @@ src/
     helpers.js
     object-id.js
 
-public/
+frontend/
   index.html
   register.html
   home.html

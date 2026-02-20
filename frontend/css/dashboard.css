@@ -1097,7 +1097,7 @@ body::after {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 /* ── Time input clock icon ── */

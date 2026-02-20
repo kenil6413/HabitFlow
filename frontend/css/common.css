@@ -677,15 +677,16 @@ textarea {
   color: #991b1b;
 }
 
-.profile-menu-item-toggle {
-  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+.profile-menu button.profile-menu-item-toggle {
+  border: 1px solid rgba(148, 163, 184, 0.3);
   font-weight: 700;
 }
 
-.profile-menu-item-toggle.active {
-  background: rgba(5, 150, 105, 0.14) !important;
-  color: #065f46 !important;
-  border-color: rgba(5, 150, 105, 0.34) !important;
+.profile-menu button.profile-menu-item-toggle.active,
+.profile-menu button.profile-menu-item-toggle.active:hover {
+  background: rgba(5, 150, 105, 0.14);
+  color: #065f46;
+  border-color: rgba(5, 150, 105, 0.34);
 }
 
 .profile-password-modal-content {

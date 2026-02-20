@@ -7,7 +7,7 @@ const router = express.Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const publicImgDir = path.join(__dirname, '../../public/img');
+const publicImgDir = path.join(__dirname, '../../frontend/img');
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',

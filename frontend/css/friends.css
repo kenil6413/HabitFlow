@@ -543,9 +543,6 @@
 @media (max-width: 768px) {
   .friends-header {
     padding: 16px 14px;
-  }
-
-  .friends-header {
     flex-direction: column;
     align-items: flex-start;
   }

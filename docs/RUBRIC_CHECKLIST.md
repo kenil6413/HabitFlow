@@ -9,21 +9,21 @@ This is a practical checklist for final QA before submission.
 - Prettier config exists (`.prettierrc`)
 - Package metadata exists (`package.json`)
 - MIT license exists (`LICENSE`)
-- Backend uses Node + Express (`src/server.js`)
+- Backend uses Node + Express (`backend/server.js`)
 - Backend uses ES modules, not CommonJS
 - MongoDB native driver is used (no Mongoose)
 - No template engine (EJS/Pug/etc.) used
 - Frontend uses vanilla JS with client-side rendering
 - Code organized by modules:
-  - DB connector: `src/db/connection.js`
-  - Routes in `src/routes/`
-  - Frontend API module: `public/js/api.js`
-  - Frontend utilities: `public/js/utils.js`
+  - DB connector: `backend/db/connection.js`
+  - Routes in `backend/routes/`
+  - Frontend API module: `frontend/js/api.js`
+  - Frontend utilities: `frontend/js/utils.js`
 - CSS organized by page modules:
-  - `public/css/auth.css`
-  - `public/css/home.css`
-  - `public/css/dashboard.css`
-  - `public/css/friends.css`
+  - `frontend/css/auth.css`
+  - `frontend/css/home.css`
+  - `frontend/css/dashboard.css`
+  - `frontend/css/friends.css`
 - At least one form is implemented:
   - Auth forms
   - Add friend form
