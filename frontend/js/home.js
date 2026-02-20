@@ -233,11 +233,7 @@ async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
   checkboxEl.disabled = true;
 
   try {
-    if (shouldBeDone) {
-      await habitsAPI.complete(habitId);
-    } else {
-      await habitsAPI.undoToday(habitId);
-    }
+    await habitsAPI.setCompletionByDate(habitId, todayKey(), shouldBeDone);
 
     const parent = checkboxEl.closest('.today-habit');
     if (parent && shouldBeDone) {

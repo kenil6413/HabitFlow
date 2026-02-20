@@ -29,6 +29,14 @@ function parseMongoId(raw) {
   if (!raw) return '';
   if (typeof raw === 'string') return raw;
   if (typeof raw === 'object' && raw.$oid) return raw.$oid;
+  if (
+    typeof raw === 'object' &&
+    raw.id &&
+    Array.isArray(raw.id.data) &&
+    raw.id.data.length === 12
+  ) {
+    return raw.id.data.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
   return String(raw);
 }
 

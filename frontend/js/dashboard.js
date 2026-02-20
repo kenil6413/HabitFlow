@@ -63,15 +63,6 @@ async function toggleCompletionForSelectedDate(habitId, doneForSelectedDate) {
     throw new Error('Cannot change completion for future dates.');
   }
 
-  if (isSameDay(selectedDate, today)) {
-    if (doneForSelectedDate) {
-      await habitsAPI.undoToday(habitId);
-    } else {
-      await habitsAPI.complete(habitId);
-    }
-    return;
-  }
-
   await habitsAPI.setCompletionByDate(
     habitId,
     toDateKey(selectedDate),
