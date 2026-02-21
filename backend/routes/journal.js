@@ -4,6 +4,27 @@ import { toObjectIdOrNull } from '../utils/object-id.js';
 
 const router = express.Router();
 
+function normalizeDateOnly(value) {
+  if (typeof value === 'string') {
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+    if (dateOnly) {
+      const year = Number(dateOnly[1]);
+      const month = Number(dateOnly[2]) - 1;
+      const day = Number(dateOnly[3]);
+      const parsedLocal = new Date(year, month, day);
+      if (!Number.isNaN(parsedLocal.getTime())) {
+        parsedLocal.setHours(0, 0, 0, 0);
+        return parsedLocal;
+      }
+    }
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
 router.post('/', async (req, res) => {
   try {
     const { userId, date, content, images } = req.body;
@@ -20,8 +41,10 @@ router.post('/', async (req, res) => {
     const db = getDB();
     const journalCollection = db.collection('journal');
 
-    const entryDate = new Date(date);
-    entryDate.setHours(0, 0, 0, 0);
+    const entryDate = normalizeDateOnly(date);
+    if (!entryDate) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
 
     const existingEntry = await journalCollection.findOne({
       userId: userObjectId,
@@ -71,8 +94,10 @@ router.get('/user/:userId/date/:date', async (req, res) => {
     const db = getDB();
     const journalCollection = db.collection('journal');
 
-    const entryDate = new Date(date);
-    entryDate.setHours(0, 0, 0, 0);
+    const entryDate = normalizeDateOnly(date);
+    if (!entryDate) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
 
     const entry = await journalCollection.findOne({
       userId: userObjectId,

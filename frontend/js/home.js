@@ -49,6 +49,46 @@ function getDayIndexFromDate(dateObj) {
   return jsDay === 0 ? 6 : jsDay - 1; // convert to Mon=0 ... Sun=6
 }
 
+const DAY_NAME_TO_INDEX = {
+  mon: 0,
+  monday: 0,
+  tue: 1,
+  tues: 1,
+  tuesday: 1,
+  wed: 2,
+  wednesday: 2,
+  thu: 3,
+  thur: 3,
+  thurs: 3,
+  thursday: 3,
+  fri: 4,
+  friday: 4,
+  sat: 5,
+  saturday: 5,
+  sun: 6,
+  sunday: 6,
+};
+
+function normalizeFrequencyDay(value) {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    if (value >= 0 && value <= 6) return value;
+    if (value >= 1 && value <= 7) return value - 1; // legacy 1..7
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim().toLowerCase();
+    if (/^\d+$/.test(trimmed)) {
+      return normalizeFrequencyDay(Number(trimmed));
+    }
+    if (trimmed in DAY_NAME_TO_INDEX) {
+      return DAY_NAME_TO_INDEX[trimmed];
+    }
+  }
+
+  return null;
+}
+
 function getHabitsForDate(habits, dateObj) {
   const dayIdx = getDayIndexFromDate(dateObj);
   return habits.filter((habit) => {
@@ -56,8 +96,12 @@ function getHabitsForDate(habits, dateObj) {
     if (!Array.isArray(habit.frequency) || habit.frequency.length === 0)
       return true;
 
-    // Accept both numeric and legacy string day values (e.g. "0"..."6")
-    return habit.frequency.some((value) => Number(value) === dayIdx);
+    const normalizedDays = habit.frequency
+      .map(normalizeFrequencyDay)
+      .filter((value) => value !== null);
+
+    if (!normalizedDays.length) return true; // fail-open for legacy malformed data
+    return normalizedDays.includes(dayIdx);
   });
 }
 
@@ -234,41 +278,16 @@ async function setHabitDoneState(habitId, shouldBeDone, checkboxEl) {
 
   try {
     await habitsAPI.setCompletionByDate(habitId, todayKey(), shouldBeDone);
-
-    const parent = checkboxEl.closest('.today-habit');
-    if (parent && shouldBeDone) {
-      parent.classList.add('done');
-    } else if (parent) {
-      parent.classList.remove('done');
-    }
-
-    const key = todayKey();
-    if (!state.completedByDate.has(key)) {
-      state.completedByDate.set(key, new Set());
-    }
-
-    if (shouldBeDone) {
-      state.completedByDate.get(key).add(habitId);
-    } else {
-      state.completedByDate.get(key).delete(habitId);
-    }
-
+    await loadHomeData();
     if (shouldBeDone && state.neverMissHabitId === habitId) {
       showNeverMissRecoveryMessage();
-    } else {
-      renderNeverMissTwice(state.habits);
     }
-
-    updateTodayProgress(getHabitsForToday(state.habits));
-
-    calendar.render();
-  } catch {
+  } catch (error) {
     checkboxEl.checked = !shouldBeDone;
+    alert(error.message || 'Unable to update habit completion');
+  } finally {
     checkboxEl.disabled = false;
-    return;
   }
-
-  checkboxEl.disabled = false;
 }
 
 function bindHabitCheckEvents() {

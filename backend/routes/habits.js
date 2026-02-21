@@ -5,38 +5,42 @@ import { toObjectIdOrNull } from '../utils/object-id.js';
 const router = express.Router();
 const MAX_PLAN_FIELD_LENGTH = 120;
 
-function normalizePlanField(value, maxLength = MAX_PLAN_FIELD_LENGTH) {
-  if (typeof value !== 'string') return '';
-  return value.trim().slice(0, maxLength);
+function pad2(value) {
+  return String(value).padStart(2, '0');
 }
 
-function normalizeDateOnly(value) {
+function dateKeyFromValue(value) {
   if (typeof value === 'string') {
-    const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-    if (dateOnlyMatch) {
-      const year = Number(dateOnlyMatch[1]);
-      const month = Number(dateOnlyMatch[2]) - 1;
-      const day = Number(dateOnlyMatch[3]);
-      const parsedLocal = new Date(year, month, day);
-      if (!Number.isNaN(parsedLocal.getTime())) {
-        parsedLocal.setHours(0, 0, 0, 0);
-        return parsedLocal;
-      }
+    const match = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(value.trim());
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`;
     }
   }
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
-  parsed.setHours(0, 0, 0, 0);
-  return parsed;
+  return `${parsed.getUTCFullYear()}-${pad2(parsed.getUTCMonth() + 1)}-${pad2(parsed.getUTCDate())}`;
+}
+
+function parseDateKeyToUTCDate(key) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  return new Date(Date.UTC(year, month, day));
+}
+
+function normalizePlanField(value, maxLength = MAX_PLAN_FIELD_LENGTH) {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, maxLength);
 }
 
 function isSameDate(a, b) {
-  const left = new Date(a);
-  const right = new Date(b);
-  left.setHours(0, 0, 0, 0);
-  right.setHours(0, 0, 0, 0);
-  return left.getTime() === right.getTime();
+  const left = dateKeyFromValue(a);
+  const right = dateKeyFromValue(b);
+  return Boolean(left && right && left === right);
 }
 
 function normalizeFrequency(value) {
@@ -246,8 +250,7 @@ router.post('/:habitId/complete', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayKey = dateKeyFromValue(new Date());
 
     const habit = await habitsCollection.findOne({ _id: habitObjectId });
     if (!habit) {
@@ -255,16 +258,14 @@ router.post('/:habitId/complete', async (req, res) => {
     }
 
     const alreadyCompleted = habit.completions.some((completion) => {
-      const completionDate = new Date(completion.date);
-      completionDate.setHours(0, 0, 0, 0);
-      return completionDate.getTime() === today.getTime();
+      return dateKeyFromValue(completion.date) === todayKey;
     });
 
     if (alreadyCompleted) {
       return res.status(400).json({ error: 'Habit already completed today' });
     }
 
-    const newCompletion = { date: today, completed: true };
+    const newCompletion = { date: todayKey, completed: true };
     const newStreak = calculateStreak([...habit.completions, newCompletion]);
 
     await habitsCollection.updateOne(
@@ -297,8 +298,7 @@ router.delete('/:habitId/complete/today', async (req, res) => {
     const db = getDB();
     const habitsCollection = db.collection('habits');
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayKey = dateKeyFromValue(new Date());
 
     const habit = await habitsCollection.findOne({ _id: habitObjectId });
     if (!habit) {
@@ -307,9 +307,7 @@ router.delete('/:habitId/complete/today', async (req, res) => {
 
     const filteredCompletions = (habit.completions || []).filter(
       (completion) => {
-        const completionDate = new Date(completion.date);
-        completionDate.setHours(0, 0, 0, 0);
-        return completionDate.getTime() !== today.getTime();
+        return dateKeyFromValue(completion.date) !== todayKey;
       }
     );
 
@@ -346,13 +344,13 @@ router.put('/:habitId/completion', async (req, res) => {
       return res.status(400).json({ error: 'Invalid habitId' });
     }
 
-    const targetDate = normalizeDateOnly(date);
-    if (!targetDate) {
+    const targetDateKey = dateKeyFromValue(date);
+    if (!targetDateKey) {
       return res.status(400).json({ error: 'Valid date is required' });
     }
 
-    const today = normalizeDateOnly(new Date());
-    if (targetDate.getTime() > today.getTime()) {
+    const todayKey = dateKeyFromValue(new Date());
+    if (targetDateKey > todayKey) {
       return res
         .status(400)
         .json({ error: 'Cannot change completion for a future date' });
@@ -370,12 +368,12 @@ router.put('/:habitId/completion', async (req, res) => {
       ? habit.completions
       : [];
     const cleanedCompletions = currentCompletions.filter(
-      (entry) => !isSameDate(entry.date, targetDate)
+      (entry) => !isSameDate(entry.date, targetDateKey)
     );
 
     const shouldBeCompleted = Boolean(completed);
     if (shouldBeCompleted) {
-      cleanedCompletions.push({ date: targetDate, completed: true });
+      cleanedCompletions.push({ date: targetDateKey, completed: true });
     }
 
     const newStreak = calculateStreak(cleanedCompletions);
@@ -400,23 +398,23 @@ router.put('/:habitId/completion', async (req, res) => {
 function calculateStreak(completions) {
   if (completions.length === 0) return 0;
 
-  const sortedCompletions = completions
-    .map((c) => new Date(c.date))
+  const sortedCompletions = [...new Set(completions.map((c) => dateKeyFromValue(c.date)).filter(Boolean))]
+    .map((key) => parseDateKeyToUTCDate(key))
+    .filter(Boolean)
     .sort((a, b) => b - a);
 
   let streak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayKey = dateKeyFromValue(new Date());
+  let expectedDate = parseDateKeyToUTCDate(todayKey);
+  if (!expectedDate) return 0;
 
-  for (let i = 0; i < sortedCompletions.length; i++) {
-    const completionDate = new Date(sortedCompletions[i]);
-    completionDate.setHours(0, 0, 0, 0);
-
-    const expectedDate = new Date(today);
-    expectedDate.setDate(today.getDate() - i);
-
+  for (const completionDate of sortedCompletions) {
     if (completionDate.getTime() === expectedDate.getTime()) {
       streak++;
+      expectedDate = new Date(expectedDate);
+      expectedDate.setUTCDate(expectedDate.getUTCDate() - 1);
+    } else if (completionDate.getTime() > expectedDate.getTime()) {
+      continue;
     } else {
       break;
     }

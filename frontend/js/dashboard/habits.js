@@ -10,6 +10,65 @@ export function isHabitDoneOnDate(habit, date, isSameDay) {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+function dayIndexMonFirst(date) {
+  const jsDay = new Date(date).getDay(); // 0=Sun ... 6=Sat
+  return jsDay === 0 ? 6 : jsDay - 1; // 0=Mon ... 6=Sun
+}
+
+const DAY_NAME_TO_INDEX = {
+  mon: 0,
+  monday: 0,
+  tue: 1,
+  tues: 1,
+  tuesday: 1,
+  wed: 2,
+  wednesday: 2,
+  thu: 3,
+  thur: 3,
+  thurs: 3,
+  thursday: 3,
+  fri: 4,
+  friday: 4,
+  sat: 5,
+  saturday: 5,
+  sun: 6,
+  sunday: 6,
+};
+
+function normalizeFrequencyDay(value) {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    if (value >= 0 && value <= 6) return value;
+    if (value >= 1 && value <= 7) return value - 1; // legacy 1..7
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim().toLowerCase();
+    if (/^\d+$/.test(trimmed)) {
+      return normalizeFrequencyDay(Number(trimmed));
+    }
+    if (trimmed in DAY_NAME_TO_INDEX) {
+      return DAY_NAME_TO_INDEX[trimmed];
+    }
+  }
+
+  return null;
+}
+
+function isHabitScheduledOnDate(habit, date) {
+  if (!Array.isArray(habit.frequency) || habit.frequency.length === 0) {
+    return true;
+  }
+
+  const dayIdx = dayIndexMonFirst(date);
+  const normalizedDays = habit.frequency
+    .map(normalizeFrequencyDay)
+    .filter((value) => value !== null);
+
+  if (!normalizedDays.length) return true; // fail-open for legacy malformed data
+  return normalizedDays.includes(dayIdx);
+}
+
 function frequencyLabel(frequency) {
   if (!Array.isArray(frequency) || !frequency.length) return '';
   if (frequency.length === 7) return 'Every day';
@@ -157,17 +216,29 @@ export function renderHabits({
         selectedDate,
         isSameDay
       );
+      const isScheduledForSelectedDate = isHabitScheduledOnDate(
+        habit,
+        selectedDate
+      );
       const description = habit.description
         ? `<p class="hdesc">${escapeHtml(habit.description)}</p>`
         : '';
       const planMeta = renderPlanMeta(habit, escapeHtml);
       const tinyVersion = renderTinyVersion(habit, escapeHtml);
+      const canToggleCompletion =
+        canEdit && (isScheduledForSelectedDate || doneForSelectedDate);
       const actionLabel = doneForSelectedDate
         ? '↺ Undo'
-        : canEdit
-          ? '✓ Complete'
-          : 'View Only';
-      const actionClass = doneForSelectedDate ? 'btn-done' : 'btn-complete';
+        : !canEdit
+          ? 'View Only'
+          : !isScheduledForSelectedDate
+            ? 'Not Scheduled'
+            : '✓ Complete';
+      const actionClass = doneForSelectedDate
+        ? 'btn-done'
+        : isScheduledForSelectedDate
+          ? 'btn-complete'
+          : 'btn-ghost';
 
       return `
         <div class="habit-item${doneForSelectedDate ? ' done' : ''}" data-habit-id="${habitIdResolver(habit)}">
@@ -178,7 +249,7 @@ export function renderHabits({
           <div class="hmain">
             <div class="htop">
               <span class="hname">${escapeHtml(habit.name)}</span>
-              <button class="btn ${actionClass} btn-sm" data-action="complete" ${canEdit ? '' : 'disabled'}>
+              <button class="btn ${actionClass} btn-sm" data-action="complete" ${canToggleCompletion ? '' : 'disabled'}>
                 ${actionLabel}
               </button>
             </div>
@@ -306,6 +377,12 @@ export function bindHabitEvents({
           state.selectedDate,
           isSameDay
         );
+
+        if (!doneForSelectedDate && !isHabitScheduledOnDate(habit, state.selectedDate)) {
+          alert('This habit is not scheduled for the selected date.');
+          return;
+        }
+
         await onToggleCompletion(habitId, doneForSelectedDate);
       }
 

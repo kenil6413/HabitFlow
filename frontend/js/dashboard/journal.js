@@ -170,7 +170,7 @@ export function createJournalController({
       .getElementById('jDatePicker')
       .addEventListener('change', async (event) => {
         if (!event.target.value) return;
-        state.selectedDate = startOfDay(new Date(event.target.value));
+        state.selectedDate = startOfDay(event.target.value);
         await loadJournalEntry();
       });
 
