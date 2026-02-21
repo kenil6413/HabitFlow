@@ -276,13 +276,6 @@ Project-2-HabitFlow/
 └── render.yaml
 ```
 
-## Constraints Compliance
-
-- Uses ES Modules (`import`/`export`) in backend
-- Uses MongoDB native driver (no Mongoose)
-- No template engines (EJS/Pug/Handlebars/etc)
-- Frontend uses vanilla JavaScript client-side rendering
-
 ## License
 
 MIT License (`LICENSE`)
