@@ -20,9 +20,18 @@ usp=drive_link
 
 ## Test Credentials
 
-The database is pre-seeded with demo records so the app can be tested immediately. The current seeded dataset includes 40 users, 1200 habits, and journal entries across the collections.
+The database is pre-seeded with demo records so the app can be tested immediately.
 
-You can log in with any seeded account from admin_1 to admin_40 using password 123456.
+Seeded Data (Ready to Test)
+
+Users: 40 demo accounts (admin_1 to admin_40)
+Habits: 1200
+Journal entries: 240
+Password for all demo accounts: 123456
+You can log in with any account from admin_1 to admin_40 (same password: 123456).
+
+To verify journal data, open Dashboard Journal and check dates:
+2026-02-16 to 2026-02-21.
 If demo users are unavailable, please create a new account from the Register page.
 
 ## Class
