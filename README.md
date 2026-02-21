@@ -18,6 +18,18 @@ The application, inspired by the principles of 'Atomic Habits' is designed to he
 usp=drive_link
 - Presentation: https://docs.google.com/presentation/d/1lAdCwQdUulUYQ9zSOAResBOwO5JtOO3glYMLic4_l_8/edit?usp=sharing
 
+## Test Credentials
+
+Use these demo accounts to quickly test the app:
+
+- Username: `user_1`
+- Password: `123456`
+
+- Username: `user_2`
+- Password: `123456`
+
+If demo users are unavailable, please create a new account from the Register page.
+
 ## Class
 
 - Course: CS5610 Web Development
