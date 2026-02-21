@@ -200,27 +200,80 @@ Project screenshots are available in the `sc/` folder.
 ## Project Structure
 
 ```text
-backend/
-  db/
-  routes/
-  utils/
-  server.js
-
-frontend/
-  css/
-  img/
-  journal-images/
-  js/
-  index.html
-  register.html
-  home.html
-  dashboard.html
-  friends.html
-
-docs/
-scripts/
-sc/
-render.yaml
+Project-2-HabitFlow/
+├── backend/
+│   ├── server.js
+│   ├── db/
+│   │   └── connection.js
+│   ├── routes/
+│   │   ├── assets.js
+│   │   ├── auth.js
+│   │   ├── friends.js
+│   │   ├── habits.js
+│   │   └── journal.js
+│   └── utils/
+│       ├── helpers.js
+│       └── object-id.js
+├── frontend/
+│   ├── index.html
+│   ├── register.html
+│   ├── home.html
+│   ├── dashboard.html
+│   ├── friends.html
+│   ├── css/
+│   │   ├── auth.css
+│   │   ├── common.css
+│   │   ├── home.css
+│   │   ├── dashboard.css
+│   │   └── friends.css
+│   ├── img/
+│   │   ├── minimalist-mountains-river-at-dawn-desktop-wallpaper.jpg
+│   │   ├── pastel-ocean-sunset-aesthetic-desktop-wallpaper-4k.jpg
+│   │   ├── wp13694694-ultrawide-minimalist-wallpapers.jpg
+│   │   └── wp13694699-ultrawide-minimalist-wallpapers.jpg
+│   ├── journal-images/
+│   │   └── dog.jpg
+│   └── js/
+│       ├── api.js
+│       ├── app-shell.js
+│       ├── client-helpers.js
+│       ├── dashboard.js
+│       ├── friends.js
+│       ├── home.js
+│       ├── page-bootstrap.js
+│       ├── profile-menu.js
+│       ├── utils.js
+│       ├── wallpaper-preload.js
+│       ├── wallpaper.js
+│       ├── auth/
+│       │   ├── login.js
+│       │   ├── particles.js
+│       │   ├── register.js
+│       │   └── shared.js
+│       ├── dashboard/
+│       │   ├── habits.js
+│       │   ├── heatmap.js
+│       │   ├── image-utils.js
+│       │   ├── journal.js
+│       │   └── stats.js
+│       ├── friends/
+│       │   ├── render.js
+│       │   └── ui.js
+│       └── home/
+│           ├── calendar.js
+│           ├── pomodoro.js
+│           ├── quotes.js
+│           └── wallpaper.js
+├── docs/
+│   └── screenshots/
+├── scripts/
+│   └── seed-rubric-data.js
+├── LICENSE
+├── README.md
+├── eslint.config.js
+├── package.json
+├── package-lock.json
+└── render.yaml
 ```
 
 ## Constraints Compliance
