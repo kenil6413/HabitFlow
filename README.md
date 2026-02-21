@@ -10,6 +10,13 @@ The application, inspired by the principles of 'Atomic Habits' is designed to he
 - Kenil Jitendrakumar Patel
 - Sukanya Sudhir Shete
 
+## Quick Links
+- How to use the application (Instructions): https://docs.google.com/document/d/16XjWUEZpEGrQirCAb7TJAhDu8OiGr-mBGi_zyxf8VLM/edit?usp=sharing
+- Design Document: https://drive.google.com/file/d/1z8JvYs4BuBHi7fCPS1pl7llQAI3By0XG/view?usp=drive_link
+- Video Explanation on YouTube: https://youtu.be/y93p9dsO6SI
+- Live Hosted Website(Demo): https://habitflow-myhk.onrender.com/home.html
+- Presentation: https://docs.google.com/presentation/d/1lAdCwQdUulUYQ9zSOAResBOwO5JtOO3glYMLic4_l_8/edit?usp=sharing
+
 ## Class
 
 - Course: CS5610 Web Development
@@ -34,7 +41,7 @@ The app helps users build consistency by:
 - Journal entries with optional image attachments
 - Friends system with mutual add/remove behavior
 - Responsive layout across laptop and external screens
-
+  
 ## Tech Stack
 
 - Node.js + Express
