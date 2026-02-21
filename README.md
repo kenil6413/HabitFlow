@@ -98,50 +98,6 @@ Open:
 
 `http://localhost:3000`
 
-## Page-Wise Usage
-
-### Register / Login
-
-1. Create a new account on `register.html`.
-2. Log in from `index.html`.
-
-### Dashboard
-
-1. Add habits using the habit form.
-2. Mark habits completed each day.
-3. Edit/delete habits when needed.
-4. Change selected date to review past records.
-
-### Home
-
-1. View daily summary and completion status.
-2. Check calendar dots: red = no habits completed, light green = some habits completed, dark green = all habits completed.
-3. Use timer for focus sessions.
-
-### Journal
-
-1. Pick a date.
-2. Write journal text.
-3. Optionally upload image(s).
-4. Save entry and review later by date.
-
-### Friends
-
-1. Copy your share code.
-2. Add friend by their code.
-3. Search and view friends' shared progress.
-4. Remove friends when needed.
-
-## Quick Demo Flow
-
-1. Register `user_1` and `user_2` (or run seeded data).
-2. Log in as `user_1`.
-3. Create 3 habits and complete at least 1.
-4. Add a journal entry.
-5. Add `user_2` as a friend via share code.
-6. Verify friend data appears on Friends page.
-
-
 ## Linting and Formatting
 
 ```bash
