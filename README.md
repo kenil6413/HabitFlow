@@ -20,14 +20,9 @@ usp=drive_link
 
 ## Test Credentials
 
-Use these demo accounts to quickly test the app:
+The database is pre-seeded with demo records so the app can be tested immediately. The current seeded dataset includes 40 users, 1200 habits, and journal entries across the collections.
 
-- Username: `user_1`
-- Password: `123456`
-
-- Username: `user_2`
-- Password: `123456`
-
+You can log in with any seeded account from admin_1 to admin_40 using password 123456.
 If demo users are unavailable, please create a new account from the Register page.
 
 ## Class
