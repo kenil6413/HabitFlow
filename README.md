@@ -223,6 +223,17 @@ Project-2-HabitFlow/
 ├── package-lock.json
 └── render.yaml
 ```
+## Image Credits
+
+Some background images used in this project are credited to their original sources:
+
+- https://wallpapers-clan.com/desktop-wallpapers/minimalist-mountains-river-at-dawn/
+- https://wallpapers-clan.com/desktop-wallpapers/pastel-ocean-sunset-aesthetic/
+- https://wallpapercave.com/minimalist-ultrawide-wallpapers
+- https://wallpapercave.com/ultrawide-minimalist-wallpapers
+
+These images are used only for educational/demo purposes in a non-commercial student project.  
+All rights remain with the original creators/owners. If any owner requests removal, the image will be replaced immediately.
 
 ## License
 
