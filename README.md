@@ -140,30 +140,6 @@ Open:
 5. Add `user_2` as a friend via share code.
 6. Verify friend data appears on Friends page.
 
-## Seed Data (1000+ Records)
-
-Generate rubric-friendly sample data:
-
-```bash
-npm run seed:rubric
-```
-
-Optional custom seed:
-
-```bash
-node scripts/seed-rubric-data.js --users=50 --habits-per-user=25 --journals-per-user=6
-```
-
-Seed journal entries with a fixed image:
-
-```bash
-node scripts/seed-rubric-data.js --journal-image=/journal-images/dog.jpg
-```
-
-Default seeded credentials:
-
-- username pattern: `user_1`, `user_2`, ...
-- password: `123456`
 
 ## Linting and Formatting
 
@@ -183,7 +159,6 @@ This project includes `render.yaml` for deployment setup.
 
 ## Screenshots
 
-Project screenshots are available in the `sc/` folder.
 
 ### Login
 ![Login](docs/screenshots/Screenshot%202026-02-20%20at%204.41.18%E2%80%AFPM.png)
