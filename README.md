@@ -11,10 +11,11 @@ The application, inspired by the principles of 'Atomic Habits' is designed to he
 - Sukanya Sudhir Shete
 
 ## Quick Links
-- How to use the application (Instructions): https://docs.google.com/document/d/16XjWUEZpEGrQirCAb7TJAhDu8OiGr-mBGi_zyxf8VLM/edit?usp=sharing
-- Design Document: https://drive.google.com/file/d/1z8JvYs4BuBHi7fCPS1pl7llQAI3By0XG/view?usp=drive_link
-- Video Explanation on YouTube: https://youtu.be/y93p9dsO6SI
 - Live Hosted Website(Demo): https://habitflow-myhk.onrender.com/home.html
+- Design Document: https://drive.google.com/file/d/1z8JvYs4BuBHi7fCPS1pl7llQAI3By0XG/view?
+- Video Explanation on YouTube: https://youtu.be/y93p9dsO6SI
+- How to use the application (Instructions): https://docs.google.com/document/d/16XjWUEZpEGrQirCAb7TJAhDu8OiGr-mBGi_zyxf8VLM/edit?usp=sharing
+usp=drive_link
 - Presentation: https://docs.google.com/presentation/d/1lAdCwQdUulUYQ9zSOAResBOwO5JtOO3glYMLic4_l_8/edit?usp=sharing
 
 ## Class
