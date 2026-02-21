@@ -1,6 +1,6 @@
 import { habitsAPI } from './api.js';
 import { initAuthenticatedPage } from './page-bootstrap.js';
-import { escapeHtml, toDateKey } from './client-helpers.js';
+import { escapeHtml, toDateKey, parseMongoId } from './client-helpers.js';
 import { initPomodoro } from './home/pomodoro.js';
 import { initCalendar } from './home/calendar.js';
 import { initQuotes } from './home/quotes.js';
@@ -72,7 +72,7 @@ function getCompletedSetForDate(dateKey) {
 
 function getCompletedCountForHabits(habits, completedSet) {
   return habits.reduce((count, habit) => {
-    return completedSet.has(String(habit._id)) ? count + 1 : count;
+    return completedSet.has(parseMongoId(habit._id)) ? count + 1 : count;
   }, 0);
 }
 
@@ -105,7 +105,7 @@ function computeCompletedMap(habits) {
       if (!state.completedByDate.has(key)) {
         state.completedByDate.set(key, new Set());
       }
-      state.completedByDate.get(key).add(String(habit._id));
+      state.completedByDate.get(key).add(parseMongoId(habit._id));
     });
   });
 }
@@ -157,11 +157,11 @@ function renderTodayHabits(habits) {
 
   elements.todayHabitList.innerHTML = todayHabits
     .map((habit) => {
-      const habitId = String(habit._id);
-      const isDone = completedToday.has(habitId);
+      const parsedHabitId = parseMongoId(habit._id);
+      const isDone = completedToday.has(parsedHabitId);
 
       return `
-        <li class="today-habit ${isDone ? 'done' : ''}" data-habit-id="${habitId}">
+        <li class="today-habit ${isDone ? 'done' : ''}" data-habit-id="${parsedHabitId}">
           <label class="today-habit-label">
             <input type="checkbox" ${isDone ? 'checked' : ''} />
             <span class="habit-text">${escapeHtml(habit.name)}</span>
@@ -188,7 +188,7 @@ function renderNeverMissTwice(habits) {
 
   const rescueHabits = habits
     .filter((habit) => {
-      const habitId = String(habit._id);
+      const habitId = parseMongoId(habit._id);
       return yesterdayDone.has(habitId) && !todayDone.has(habitId);
     })
     .sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0));
@@ -201,7 +201,7 @@ function renderNeverMissTwice(habits) {
   }
 
   const habit = rescueHabits[0];
-  state.neverMissHabitId = String(habit._id);
+  state.neverMissHabitId = parseMongoId(habit._id);
   elements.neverMissCard.classList.remove('never-miss-card-success');
   elements.neverMissHabit.textContent = habit.name;
 

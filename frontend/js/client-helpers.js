@@ -28,6 +28,13 @@ function escapeHtml(value) {
 function parseMongoId(raw) {
   if (!raw) return '';
   if (typeof raw === 'string') return raw;
+  if (typeof raw === 'object' && typeof raw.toHexString === 'function') {
+    return raw.toHexString();
+  }
+  if (typeof raw === 'object' && typeof raw.toString === 'function') {
+    const asText = raw.toString();
+    if (asText && asText !== '[object Object]') return asText;
+  }
   if (typeof raw === 'object' && raw.$oid) return raw.$oid;
   if (
     typeof raw === 'object' &&
